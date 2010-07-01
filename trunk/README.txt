@@ -7,7 +7,7 @@ and hack on yourself, you've come to the right place.
 
 src/viewer/ contains the embeddable javascript viewer
 
-examples/ contains an example of how to use the embedded viewer
+src/viewer/examples/ contains an example of how to use the embedded viewer
 in src/viewer.
 
 src/object-scanner/ contains some hacked-up code for automatically capturing
