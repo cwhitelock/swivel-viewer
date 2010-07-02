@@ -1,11 +1,21 @@
 #summary How to create and embed your own swivel-able albums
 #labels Featured
 
-= What's the big deal with swiveling? =
+= What this HOWTO covers =
+
+Briefly, there are three different ways to swivel through an online photo album:
+
+ # Using the Picasa Web Albums built-in slideshow viewer
+ # Using the Picasa Web Albums embeddable (flash) slideshow viewer on another site
+ # Downloading the code on this site and hosting it yourself
+
+Read on to find out how to do each of these things.
+
+= What's the big deal with swiveling, anyway? =
 
 The ability to swivel left and right in an album by dragging on the image doesn't give you any new fundamental abilities.  But it's a lot easier than clicking repeatedly on a "next" or "previous" arrow.
 
-If you can also zoom in and out of the images using your scroll wheel, examining a set of images becomes a lot more intuitive.
+If you can also zoom in and out of the images using your scroll wheel, examining a set of images becomes a lot more intuitive.  *Note that currently, zooming is only supported by the downloadable viewer available here*.  The picasa-based options only support swiveling backward and forward through images.
 
 This is particularly helpful if the images in a photo album are closely related in space, for example, if the images are of an object turning on a turntable.  But the images don't have to be related for swiveling to be useful.
 
