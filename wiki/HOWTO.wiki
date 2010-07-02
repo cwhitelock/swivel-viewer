@@ -13,10 +13,10 @@ This is particularly helpful if the images in a photo album are closely related 
 
 The easiest way is to visit [http://picasaweb.google.com Picasa Web Albums] and simply upload a few photos into an album.  When you're viewing the album's page, click the slideshow button:
 
-http://lh6.ggpht.com/_oXIW_jM0QDA/TC0-oPPUaKI/AAAAAAAASIw/fNCfVmVmDG4/s640/slideshow.png
+<img src="http://lh6.ggpht.com/_oXIW_jM0QDA/TC0-oPPUaKI/AAAAAAAASIw/fNCfVmVmDG4/s640/slideshow.png"></img>
 
 That'll bring up the full-page slideshow viewer:
 
-http://lh3.ggpht.com/_oXIW_jM0QDA/TC0_JT8s4yI/AAAAAAAASI4/Xt8BXQ29FLI/s640/slideshow2.png
+<img src="http://lh3.ggpht.com/_oXIW_jM0QDA/TC0_JT8s4yI/AAAAAAAASI4/Xt8BXQ29FLI/s640/slideshow2.png"></img>
 
 Drag left and right to flip forward and backward through the images.  If the album is public (or unlisted), you can send others the page location and then can see your album in the slideshow viewer as well.
