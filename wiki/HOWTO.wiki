@@ -20,3 +20,17 @@ That'll bring up the full-page slideshow viewer:
 <img src="http://lh3.ggpht.com/_oXIW_jM0QDA/TC0_JT8s4yI/AAAAAAAASI4/Xt8BXQ29FLI/s640/slideshow2.png"></img>
 
 Drag left and right to flip forward and backward through the images.  If the album is public (or unlisted), you can send others the page location and then can see your album in the slideshow viewer as well.
+
+= How can I embed an album in a web page of my own? =
+
+If you're technically skilled, you can use the code on this site to host your own viewer for images stored locally or elsewhere on the internet.
+
+If not, don't despair!  The Picasa embeddable slideshow also supports swiveling.
+
+Use the Picasa Web Albums [http://picasa.google.com/support/bin/answer.py?answer=66969 instructions for embedding a slideshow] in a blog post or other page on the internet.
+
+= What if I want to host the images and viewer myself? =
+
+You've come to the right place.  Use the "downloads" tab at the top of this page to download a source archive with our Javascript swivel viewer, which you can use freely to serve up zoomable, swivel-able slideshows of images on your own site or elsewhere.
+
+See the "readme" and example files in the archive for simple instructions on what you need and where to put it.
