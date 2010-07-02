@@ -1,0 +1,22 @@
+#summary How to create and embed your own swivel-able albums
+#labels Featured
+
+= What's the big deal with swiveling? =
+
+The ability to swivel left and right in an album by dragging on the image doesn't give you any new fundamental abilities.  But it's a lot easier than clicking repeatedly on a "next" or "previous" arrow.
+
+If you can also zoom in and out of the images using your scroll wheel, examining a set of images becomes a lot more intuitive.
+
+This is particularly helpful if the images in a photo album are closely related in space, for example, if the images are of an object turning on a turntable.  But the images don't have to be related for swiveling to be useful.
+
+= How can I make a swivel-able album? =
+
+The easiest way is to visit [http://picasaweb.google.com Picasa Web Albums] and simply upload a few photos into an album.  When you're viewing the album's page, click the slideshow button:
+
+http://lh6.ggpht.com/_oXIW_jM0QDA/TC0-oPPUaKI/AAAAAAAASIw/fNCfVmVmDG4/s640/slideshow.png
+
+That'll bring up the full-page slideshow viewer:
+
+http://lh3.ggpht.com/_oXIW_jM0QDA/TC0_JT8s4yI/AAAAAAAASI4/Xt8BXQ29FLI/s640/slideshow2.png
+
+Drag left and right to flip forward and backward through the images.  If the album is public (or unlisted), you can send others the page location and then can see your album in the slideshow viewer as well.
