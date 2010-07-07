@@ -44,3 +44,7 @@ Use the Picasa Web Albums [http://picasa.google.com/support/bin/answer.py?answer
 You've come to the right place.  Use the "downloads" tab at the top of this page to download a source archive with our Javascript swivel viewer, which you can use freely to serve up zoomable, swivel-able slideshows of images on your own site or elsewhere.
 
 See the "readme" and example files in the archive for simple instructions on what you need and where to put it.
+
+= What if I want to take a lot of photos very easily? =
+
+We experimented with free-standing motorized turntable cabinets that let us securely mount lights, cameras and a laptop to control everything.  It's very experimental, but check out the [TurntableCabinet] page for more info if you think you'd like to build a high volume photography cabinet.
