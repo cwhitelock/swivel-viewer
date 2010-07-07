@@ -1,17 +1,13 @@
 #summary Plans and code for a free-standing cabinet with motorized turntable
 
-= Turntable Cabinet plans and code =
+= (alpha quality) Turntable Cabinet plans and code =
 
 Most people who visit this site will be most interested in the [HOWTO] that shows how to create and embed photo albums.  But if you find yourself wanting to take a lot of photos of objects on turntables, you might be interested in the "object-scanner" source code that's also included in our downloadable archive.
 
 We used that code to make a turntable automatically move, and then tell a USB-attached camera to take a photo.  We built a cabinet to hold the camera, turntable and some big soft boxes, and ended up with what we called a "high volume object scanner".  It let us shoot photos all around an object with a single click of the mouse.
 
-http://lh4.ggpht.com/_oXIW_jM0QDA/TDUJxDIKXDI/AAAAAAAASKI/yC49SSChkrs/s640/scanner-cabinet-4.png
+<img src="http://lh4.ggpht.com/_oXIW_jM0QDA/TDUJxDIKXDI/AAAAAAAASKI/yC49SSChkrs/s640/scanner-cabinet-4.png">
 
+You can download the <a href="http://sketchup.google.com/3dwarehouse/details?mid=e8929f31bf4e166935bd86b45ada396e&result=4">sketchup model for the cabinet</a> at <a href="http://sketchup.google.com/3dwarehouse/">3D warehouse</a>, or find it in the source archive.
 
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+The turntable code and design are very experimental, so don't expect it to be easy to build one of your own.
