@@ -1,4 +1,5 @@
 #summary Plans and code for a free-standing cabinet with motorized turntable
+#labels Featured
 
 = (alpha quality) Turntable Cabinet plans and code =
 
