@@ -1,4 +1,5 @@
 #summary How to make high quality albums
+#labels Featured
 
 = How to create high quality photo albums =
 
@@ -26,7 +27,7 @@ Several companies specialize in taking high quality object photographs for the w
 
 For instance, we worked with <a href="http://www.3dvo.com/">3dvo</a> to shoot a number of products for us, and then carefully remove the background and retouch the photos to make them look great.  3dvo also has their own proprietary flash viewer with a lot of neat features and viewing modes:
 
-<a href="http://www.3dvo.com/"><img src=http://lh3.ggpht.com/_oXIW_jM0QDA/TDUZk3su8TI/AAAAAAAASKo/OT1gfdi2ZUA/3dvo-helmet.png"/></a>
+<a href="http://3dvo.com"><img src="http://lh5.ggpht.com/_oXIW_jM0QDA/TDUajhDVXdI/AAAAAAAASK8/6Z_icC5T_vE/3dvo-helmet.png"/></a>
 
 = (alpha quality) Turntable Cabinet plans and code =
 
