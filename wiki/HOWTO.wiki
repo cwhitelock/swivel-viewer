@@ -47,4 +47,4 @@ See the "readme" and example files in the archive for simple instructions on wha
 
 = What if I want to take a lot of photos very easily? =
 
-We experimented with free-standing motorized turntable cabinets that let us securely mount lights, cameras and a laptop to control everything.  It's very experimental, but check out the [TurntableCabinet] page for more info if you think you'd like to build a high volume photography cabinet.
+We experimented with free-standing motorized turntable cabinets that let us securely mount lights, cameras and a laptop to control everything.  It's very experimental, but check out the [MakingSwivelAlbums] page for more info if you think you'd like to build a high volume photography cabinet.
