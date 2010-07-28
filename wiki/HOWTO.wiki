@@ -9,7 +9,7 @@ Briefly, there are three different ways to swivel through an online photo album:
  # Using the Picasa Web Albums embeddable (flash) slideshow viewer on another site
  # Downloading the code on this site and hosting it yourself
 
-Read on to find out how to do each of these things.
+Read on to find out how to do each of these things.  (Or go directly to [HostingTheViewer] if you're a techie and already know you want to host the viewer yourself.)
 
 = What's the big deal with swiveling, anyway? =
 
@@ -43,7 +43,7 @@ Use the Picasa Web Albums [http://picasa.google.com/support/bin/answer.py?answer
 
 You've come to the right place.  Use the "downloads" tab at the top of this page to download a source archive with our Javascript swivel viewer, which you can use freely to serve up zoomable, swivel-able slideshows of images on your own site or elsewhere.
 
-See the "readme" and example files in the archive for simple instructions on what you need and where to put it.
+[HostingTheViewer] has more complete info on how to serve up the viewer and images yourself.
 
 = What if I want to take a lot of photos very easily? =
 
