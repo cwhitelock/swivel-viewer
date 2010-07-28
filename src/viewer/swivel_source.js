@@ -491,10 +491,31 @@ swivel_viewer.Swivel.prototype.doMouseIn = function(e) {
  * 
  * @param {Event} e mouse-out event
  */
-swivel_viewer.Swivel.prototype.doMouseOut = function(e) {
+swivel_viewer..Swivel.prototype.doMouseOut = function(e) {
+  // Address the problem with IE which generates "mouse out" event when
+  // swapping the images.  This ensures that the mouse actually left the area.
+  if (this.mouseIsDown_) {
+    var mouseX_ = e.clientX + document.body.scrollLeft;
+    var mouseY_ = e.clientY + document.body.scrollTop;
+
+    var width = e.currentTarget.offsetWidth;
+    var height = e.currentTarget.offsetHeight;
+
+    if (mouseX_ < 0 || mouseX_ >= width || mouseY_ < 0 || mouseY_ >= height) {
+      // Treat this as a mouse up, which will stop any current action.
+      this.doMouseUp(e);
+
+      // Reset to the default cursor in case the mouse up changed it.
+      this.cursorDefault();
+    }
+    e.stopPropagation();
+    e.preventDefault();
+    return;
+  }
+
   // Treat this as a mouse up, which will stop any current action.
   this.doMouseUp(e);
-  
+
   // Reset to the default cursor in case the mouse up changed it.
   this.cursorDefault();
 };

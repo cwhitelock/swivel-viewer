@@ -1,17 +1,17 @@
 // Input 0
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Copyright 2006 Google Inc. All Rights Reserved.
 
 /**
  * @fileoverview Bootstrap for the Google JS Library (Closure).
@@ -20,6 +20,8 @@
  * global <code>CLOSURE_NO_DEPS</code> is set to true.  This allows projects to
  * include their own deps file(s) from different locations.
  *
+*
+*
  */
 
 /**
@@ -238,6 +240,7 @@ goog.addDependency = function(relPath, provides, requires) {
 };
 
 
+
 /**
  * Implements a system for the dynamic resolution of dependencies
  * that works in parallel with the BUILD system. Note that all calls
@@ -248,10 +251,10 @@ goog.addDependency = function(relPath, provides, requires) {
 goog.require = function(rule) {
 
   // if the object already exists we do not need do do anything
-  // TODO: If we start to support require based on file name this has
+  // TODO(user): If we start to support require based on file name this has
   //            to change
-  // TODO: If we allow goog.foo.* this has to change
-  // TODO: If we implement dynamic load after page load we should probably
+  // TODO(user): If we allow goog.foo.* this has to change
+  // TODO(user): If we implement dynamic load after page load we should probably
   //            not remove this code for the compiled output
   if (!COMPILED) {
     if (goog.getObjectByName(rule)) {
@@ -267,17 +270,12 @@ goog.require = function(rule) {
         goog.global.console['error'](errorMessage);
       }
 
+      
         throw Error(errorMessage);
+        
     }
   }
 };
-
-
-/**
- * Whether goog.require should throw an exception if it fails.
- * @type {boolean}
- */
-goog.useStrictRequires = false;
 
 
 /**
@@ -304,7 +302,7 @@ goog.global.CLOSURE_NO_DEPS;
 
 /**
  * Null function used for default values of callbacks, etc.
- * @type {!Function}
+ * @return {void}
  */
 goog.nullFunction = function() {};
 
@@ -790,84 +788,117 @@ goog.isObject = function(val) {
 
 
 /**
- * Adds a hash code field to an object. The hash code is unique for the
- * given object.
- * @param {Object} obj The object to get the hash code for.
- * @return {number} The hash code for the object.
+ * Gets a unique ID for an object. This mutates the object so that further
+ * calls with the same object as a parameter returns the same value. The unique
+ * ID is guaranteed to be unique across the current session amongst objects that
+ * are passed into {@code getUid}. There is no guarantee that the ID is unique
+ * or consistent across sessions.
+ *
+ * @param {Object} obj The object to get the unique ID for.
+ * @return {number} The unique ID for the object.
  */
-goog.getHashCode = function(obj) {
+goog.getUid = function(obj) {
+  // TODO(user): Make the type stricter, do not accept null.
+
   // In IE, DOM nodes do not extend Object so they do not have this method.
   // we need to check hasOwnProperty because the proto might have this set.
-
-  // TODO: There is a proposal to add hashcode as a global function to JS2
-  //            we should keep track of this process so we can use that whenever
-  //            it starts to show up in the real world.
-  if (obj.hasOwnProperty && obj.hasOwnProperty(goog.HASH_CODE_PROPERTY_)) {
-    return obj[goog.HASH_CODE_PROPERTY_];
+  if (obj.hasOwnProperty && obj.hasOwnProperty(goog.UID_PROPERTY_)) {
+    return obj[goog.UID_PROPERTY_];
   }
-  if (!obj[goog.HASH_CODE_PROPERTY_]) {
-    obj[goog.HASH_CODE_PROPERTY_] = ++goog.hashCodeCounter_;
+  if (!obj[goog.UID_PROPERTY_]) {
+    obj[goog.UID_PROPERTY_] = ++goog.uidCounter_;
   }
-  return obj[goog.HASH_CODE_PROPERTY_];
+  return obj[goog.UID_PROPERTY_];
 };
 
 
 /**
- * Removes the hash code field from an object.
- * @param {Object} obj The object to remove the field from.
+ * Removes the unique ID from an object. This is useful if the object was
+ * previously mutated using {@code goog.getUid} in which case the mutation is
+ * undone.
+ * @param {Object} obj The object to remove the unique ID field from.
  */
-goog.removeHashCode = function(obj) {
+goog.removeUid = function(obj) {
+  // TODO(user): Make the type stricter, do not accept null.
+
   // DOM nodes in IE are not instance of Object and throws exception
   // for delete. Instead we try to use removeAttribute
   if ('removeAttribute' in obj) {
-    obj.removeAttribute(goog.HASH_CODE_PROPERTY_);
+    obj.removeAttribute(goog.UID_PROPERTY_);
   }
   /** @preserveTry */
   try {
-    delete obj[goog.HASH_CODE_PROPERTY_];
+    delete obj[goog.UID_PROPERTY_];
   } catch (ex) {
   }
 };
 
 
 /**
- * Name for hash code property. Initialized in a way to help avoid collisions
+ * Name for unique ID property. Initialized in a way to help avoid collisions
  * with other closure javascript on the same page.
  * @type {string}
  * @private
  */
-goog.HASH_CODE_PROPERTY_ = 'closure_hashCode_' +
+goog.UID_PROPERTY_ = 'closure_uid_' +
     Math.floor(Math.random() * 2147483648).toString(36);
 
 
 /**
- * Counter for hash codes.
+ * Counter for UID.
  * @type {number}
  * @private
  */
-goog.hashCodeCounter_ = 0;
+goog.uidCounter_ = 0;
 
 
 /**
- * Clone an object/array (recursively)
- * @param {Object} proto Object to clone.
- * @return {Object} Clone of x;.
+ * Adds a hash code field to an object. The hash code is unique for the
+ * given object.
+ * @param {Object} obj The object to get the hash code for.
+ * @return {number} The hash code for the object.
+ * @deprecated Use goog.getUid instead.
  */
-goog.cloneObject = function(proto) {
-  var type = goog.typeOf(proto);
+goog.getHashCode = goog.getUid;
+
+
+/**
+ * Removes the hash code field from an object.
+ * @param {Object} obj The object to remove the field from.
+ * @deprecated Use goog.removeUid instead.
+ */
+goog.removeHashCode = goog.removeUid;
+
+
+/**
+ * Clones a value. The input may be an Object, Array, or basic type. Objects and
+ * arrays will be cloned recursively.
+ *
+ * WARNINGS:
+ * <code>goog.cloneObject</code> does not detect reference loops. Objects that
+ * refer to themselves will cause infinite recursion.
+ *
+ * <code>goog.cloneObject</code> is unaware of unique identifiers, and copies
+ * UIDs created by <code>getUid</code> into cloned results.
+ *
+ * @param {*} obj The value to clone.
+ * @return {*} A clone of the input value.
+ * @deprecated goog.cloneObject is unsafe. Prefer the goog.object methods.
+ */
+goog.cloneObject = function(obj) {
+  var type = goog.typeOf(obj);
   if (type == 'object' || type == 'array') {
-    if (proto.clone) {
-      // TODO Change to proto.clone() once # args warn is removed
-      return proto.clone.call(proto);
+    if (obj.clone) {
+      return obj.clone();
     }
     var clone = type == 'array' ? [] : {};
-    for (var key in proto) {
-      clone[key] = goog.cloneObject(proto[key]);
+    for (var key in obj) {
+      clone[key] = goog.cloneObject(obj[key]);
     }
     return clone;
   }
 
-  return proto;
+  return obj;
 };
 
 
@@ -876,7 +907,7 @@ goog.cloneObject = function(proto) {
  * compiler can better support duck-typing constructs as used in
  * goog.cloneObject.
  *
- * TODO: Remove once the JSCompiler can infer that the check for
+ * TODO(user): Remove once the JSCompiler can infer that the check for
  * proto.clone is safe in goog.cloneObject.
  *
  * @type {Function}
@@ -1013,7 +1044,7 @@ goog.globalEval = function(script) {
       var scriptElt = doc.createElement('script');
       scriptElt.type = 'text/javascript';
       scriptElt.defer = false;
-      // NOTE: can't use .innerHTML since "t('<test>')" will fail and
+      // Note(user): can't use .innerHTML since "t('<test>')" will fail and
       // .text doesn't work in Safari 2.  Therefore we append a text node.
       scriptElt.appendChild(doc.createTextNode(script));
       doc.body.appendChild(scriptElt);
@@ -1037,6 +1068,8 @@ goog.globalEval = function(script) {
  * definitions with the union of Array and NodeList.
  *
  * Does nothing in uncompiled code.
+ *
+ * @deprecated Please use the {@code @typedef} annotation.
  */
 goog.typedef = true;
 
@@ -1125,7 +1158,8 @@ goog.setCssNameMapping = function(mapping) {
 goog.getMsg = function(str, opt_values) {
   var values = opt_values || {};
   for (var key in values) {
-    str = str.replace(new RegExp('\\{\\$' + key + '\\}', 'gi'), values[key]);
+    var value = ('' + values[key]).replace(/\$/g, '$$$$');
+    str = str.replace(new RegExp('\\{\\$' + key + '\\}', 'gi'), value);
   }
   return str;
 };
@@ -1272,35 +1306,1502 @@ goog.base = function(me, opt_methodName, var_args) {
 };
 
 
+/**
+ * Allow for aliasing within scope functions.  This function exists for
+ * uncompiled code - in compiled code the calls will be inlined and the
+ * aliases applied.  In uncompiled code the function is simply run since the
+ * aliases as written are valid JavaScript.
+ * @param {function()} fn Function to call.  This function can contain aliases
+ *     to namespaces (e.g. "var dom = goog.dom") or classes
+ *    (e.g. "var Timer = goog.Timer").
+ */
+goog.scope = function(fn) {
+  fn.call(goog.global);
+};
+
+
+
 
 // Input 1
+// Copyright 2009 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+/**
+ * @fileoverview Provides a base class for custom Error objects such that the
+ * stack is corectly maintained.
+ *
+*
+ */
+
+goog.provide('goog.debug.Error');
+
+
+
+/**
+ * Base class for custom error objects.
+ * @param {*=} opt_msg The message associated with the error.
+ * @constructor
+ * @extends {Error}
+ */
+goog.debug.Error = function(opt_msg) {
+
+  // Ensure there is a stack trace.
+  this.stack = new Error().stack || '';
+
+  if (opt_msg) {
+    this.message = String(opt_msg);
+  }
+};
+goog.inherits(goog.debug.Error, Error);
+
+
+/** @inheritDoc */
+goog.debug.Error.prototype.name = 'CustomError';
+
+// Input 2
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Utilities for string manipulation.
+*
+*
+ */
+
+
+/**
+ * Namespace for string utilities
+ */
+goog.provide('goog.string');
+goog.provide('goog.string.Unicode');
+
+
+/**
+ * Common Unicode string characters.
+ * @enum {string}
+ */
+goog.string.Unicode = {
+  NBSP: '\xa0'
+};
+
+
+/**
+ * Fast prefix-checker.
+ * @param {string} str The string to check.
+ * @param {string} prefix A string to look for at the start of {@code str}.
+ * @return {boolean} True if {@code str} begins with {@code prefix}.
+ */
+goog.string.startsWith = function(str, prefix) {
+  return str.lastIndexOf(prefix, 0) == 0;
+};
+
+
+/**
+ * Fast suffix-checker.
+ * @param {string} str The string to check.
+ * @param {string} suffix A string to look for at the end of {@code str}.
+ * @return {boolean} True if {@code str} ends with {@code suffix}.
+ */
+goog.string.endsWith = function(str, suffix) {
+  var l = str.length - suffix.length;
+  return l >= 0 && str.indexOf(suffix, l) == l;
+};
+
+
+/**
+ * Case-insensitive prefix-checker.
+ * @param {string} str The string to check.
+ * @param {string} prefix  A string to look for at the end of {@code str}.
+ * @return {boolean} True if {@code str} begins with {@code prefix} (ignoring
+ *     case).
+ */
+goog.string.caseInsensitiveStartsWith = function(str, prefix) {
+  return goog.string.caseInsensitiveCompare(
+      prefix, str.substr(0, prefix.length)) == 0;
+};
+
+
+/**
+ * Case-insensitive suffix-checker.
+ * @param {string} str The string to check.
+ * @param {string} suffix A string to look for at the end of {@code str}.
+ * @return {boolean} True if {@code str} ends with {@code suffix} (ignoring
+ *     case).
+ */
+goog.string.caseInsensitiveEndsWith = function(str, suffix) {
+  return goog.string.caseInsensitiveCompare(
+      suffix, str.substr(str.length - suffix.length, suffix.length)) == 0;
+};
+
+
+/**
+ * Does simple python-style string substitution.
+ * subs("foo%s hot%s", "bar", "dog") becomes "foobar hotdog".
+ * @param {string} str The string containing the pattern.
+ * @param {...*} var_args The items to substitute into the pattern.
+ * @return {string} A copy of {@code str} in which each occurrence of
+ *     {@code %s} has been replaced an argument from {@code var_args}.
+ */
+goog.string.subs = function(str, var_args) {
+  // This appears to be slow, but testing shows it compares more or less
+  // equivalent to the regex.exec method.
+  for (var i = 1; i < arguments.length; i++) {
+    // We cast to String in case an argument is a Function.  Replacing $&, for
+    // example, with $$$& stops the replace from subsituting the whole match
+    // into the resultant string.  $$$& in the first replace becomes $$& in the
+    //  second, which leaves $& in the resultant string.  Also:
+    // $$, $`, $', $n $nn
+    var replacement = String(arguments[i]).replace(/\$/g, '$$$$');
+    str = str.replace(/\%s/, replacement);
+  }
+  return str;
+};
+
+
+/**
+ * Converts multiple whitespace chars (spaces, non-breaking-spaces, new lines
+ * and tabs) to a single space, and strips leading and trailing whitespace.
+ * @param {string} str Input string.
+ * @return {string} A copy of {@code str} with collapsed whitespace.
+ */
+goog.string.collapseWhitespace = function(str) {
+  // Since IE doesn't include non-breaking-space (0xa0) in their \s character
+  // class (as required by section 7.2 of the ECMAScript spec), we explicitly
+  // include it in the regexp to enforce consistent cross-browser behavior.
+  return str.replace(/[\s\xa0]+/g, ' ').replace(/^\s+|\s+$/g, '');
+};
+
+
+/**
+ * Checks if a string is empty or contains only whitespaces.
+ * @param {string} str The string to check.
+ * @return {boolean} True if {@code str} is empty or whitespace only.
+ */
+goog.string.isEmpty = function(str) {
+  // testing length == 0 first is actually slower in all browsers (about the
+  // same in Opera).
+  // Since IE doesn't include non-breaking-space (0xa0) in their \s character
+  // class (as required by section 7.2 of the ECMAScript spec), we explicitly
+  // include it in the regexp to enforce consistent cross-browser behavior.
+  return /^[\s\xa0]*$/.test(str);
+};
+
+
+/**
+ * Checks if a string is null, empty or contains only whitespaces.
+ * @param {*} str The string to check.
+ * @return {boolean} True if{@code str} is null, empty, or whitespace only.
+ */
+goog.string.isEmptySafe = function(str) {
+  return goog.string.isEmpty(goog.string.makeSafe(str));
+};
+
+
+/**
+ * Checks if a string is all breaking whitespace.
+ * @param {string} str The string to check.
+ * @return {boolean} Whether the string is all breaking whitespace.
+ */
+goog.string.isBreakingWhitespace = function(str) {
+  return !/[^\t\n\r ]/.test(str);
+};
+
+
+/**
+ * Checks if a string contains all letters.
+ * @param {string} str string to check.
+ * @return {boolean} True if {@code str} consists entirely of letters.
+ */
+goog.string.isAlpha = function(str) {
+  return !/[^a-zA-Z]/.test(str);
+};
+
+
+/**
+ * Checks if a string contains only numbers.
+ * @param {*} str string to check. If not a string, it will be
+ *     casted to one.
+ * @return {boolean} True if {@code str} is numeric.
+ */
+goog.string.isNumeric = function(str) {
+  return !/[^0-9]/.test(str);
+};
+
+
+/**
+ * Checks if a string contains only numbers or letters.
+ * @param {string} str string to check.
+ * @return {boolean} True if {@code str} is alphanumeric.
+ */
+goog.string.isAlphaNumeric = function(str) {
+  return !/[^a-zA-Z0-9]/.test(str);
+};
+
+
+/**
+ * Checks if a character is a space character.
+ * @param {string} ch Character to check.
+ * @return {boolean} True if {code ch} is a space.
+ */
+goog.string.isSpace = function(ch) {
+  return ch == ' ';
+};
+
+
+/**
+ * Checks if a character is a valid unicode character.
+ * @param {string} ch Character to check.
+ * @return {boolean} True if {code ch} is a valid unicode character.
+ */
+goog.string.isUnicodeChar = function(ch) {
+  return ch.length == 1 && ch >= ' ' && ch <= '~' ||
+         ch >= '\u0080' && ch <= '\uFFFD';
+};
+
+
+/**
+ * Takes a string and replaces newlines with a space. Multiple lines are
+ * replaced with a single space.
+ * @param {string} str The string from which to strip newlines.
+ * @return {string} A copy of {@code str} stripped of newlines.
+ */
+goog.string.stripNewlines = function(str) {
+  return str.replace(/(\r\n|\r|\n)+/g, ' ');
+};
+
+
+/**
+ * Replaces Windows and Mac new lines with unix style: \r or \r\n with \n.
+ * @param {string} str The string to in which to canonicalize newlines.
+ * @return {string} {@code str} A copy of {@code} with canonicalized newlines.
+ */
+goog.string.canonicalizeNewlines = function(str) {
+  return str.replace(/(\r\n|\r|\n)/g, '\n');
+};
+
+
+/**
+ * Normalizes whitespace in a string, replacing all whitespace chars with
+ * a space.
+ * @param {string} str The string in which to normalize whitespace.
+ * @return {string} A copy of {@code str} with all whitespace normalized.
+ */
+goog.string.normalizeWhitespace = function(str) {
+  return str.replace(/\xa0|\s/g, ' ');
+};
+
+
+/**
+ * Normalizes spaces in a string, replacing all consecutive spaces and tabs
+ * with a single space. Replaces non-breaking space with a space.
+ * @param {string} str The string in which to normalize spaces.
+ * @return {string} A copy of {@code str} with all consecutive spaces and tabs
+ *    replaced with a single space.
+ */
+goog.string.normalizeSpaces = function(str) {
+  return str.replace(/\xa0|[ \t]+/g, ' ');
+};
+
+
+/**
+ * Trims white spaces to the left and right of a string.
+ * @param {string} str The string to trim.
+ * @return {string} A trimmed copy of {@code str}.
+ */
+goog.string.trim = function(str) {
+  // Since IE doesn't include non-breaking-space (0xa0) in their \s character
+  // class (as required by section 7.2 of the ECMAScript spec), we explicitly
+  // include it in the regexp to enforce consistent cross-browser behavior.
+  return str.replace(/^[\s\xa0]+|[\s\xa0]+$/g, '');
+};
+
+
+/**
+ * Trims whitespaces at the left end of a string.
+ * @param {string} str The string to left trim.
+ * @return {string} A trimmed copy of {@code str}.
+ */
+goog.string.trimLeft = function(str) {
+  // Since IE doesn't include non-breaking-space (0xa0) in their \s character
+  // class (as required by section 7.2 of the ECMAScript spec), we explicitly
+  // include it in the regexp to enforce consistent cross-browser behavior.
+  return str.replace(/^[\s\xa0]+/, '');
+};
+
+
+/**
+ * Trims whitespaces at the right end of a string.
+ * @param {string} str The string to right trim.
+ * @return {string} A trimmed copy of {@code str}.
+ */
+goog.string.trimRight = function(str) {
+  // Since IE doesn't include non-breaking-space (0xa0) in their \s character
+  // class (as required by section 7.2 of the ECMAScript spec), we explicitly
+  // include it in the regexp to enforce consistent cross-browser behavior.
+  return str.replace(/[\s\xa0]+$/, '');
+};
+
+
+/**
+ * A string comparator that ignores case.
+ * -1 = str1 less than str2
+ *  0 = str1 equals str2
+ *  1 = str1 greater than str2
+ *
+ * @param {string} str1 The string to compare.
+ * @param {string} str2 The string to compare {@code str1} to.
+ * @return {number} The comparator result, as described above.
+ */
+goog.string.caseInsensitiveCompare = function(str1, str2) {
+  var test1 = String(str1).toLowerCase();
+  var test2 = String(str2).toLowerCase();
+
+  if (test1 < test2) {
+    return -1;
+  } else if (test1 == test2) {
+    return 0;
+  } else {
+    return 1;
+  }
+};
+
+
+/**
+ * Regular expression used for splitting a string into substrings of fractional
+ * numbers, integers, and non-numeric characters.
+ * @type {RegExp}
+ * @private
+ */
+goog.string.numerateCompareRegExp_ = /(\.\d+)|(\d+)|(\D+)/g;
+
+
+/**
+ * String comparison function that handles numbers in a way humans might expect.
+ * Using this function, the string "File 2.jpg" sorts before "File 10.jpg". The
+ * comparison is mostly case-insensitive, though strings that are identical
+ * except for case are sorted with the upper-case strings before lower-case.
+ *
+ * This comparison function is significantly slower (about 500x) than either
+ * the default or the case-insensitive compare. It should not be used in
+ * time-critical code, but should be fast enough to sort several hundred short
+ * strings (like filenames) with a reasonable delay.
+ *
+ * @param {string} str1 The string to compare in a numerically sensitive way.
+ * @param {string} str2 The string to compare {@code str1} to.
+ * @return {number} less than 0 if str1 < str2, 0 if str1 == str2, greater than
+ *     0 if str1 > str2.
+ */
+goog.string.numerateCompare = function(str1, str2) {
+  if (str1 == str2) {
+    return 0;
+  }
+  if (!str1) {
+    return -1;
+  }
+  if (!str2) {
+    return 1;
+  }
+
+  // Using match to split the entire string ahead of time turns out to be faster
+  // for most inputs than using RegExp.exec or iterating over each character.
+  var tokens1 = str1.toLowerCase().match(goog.string.numerateCompareRegExp_);
+  var tokens2 = str2.toLowerCase().match(goog.string.numerateCompareRegExp_);
+
+  var count = Math.min(tokens1.length, tokens2.length);
+
+  for (var i = 0; i < count; i++) {
+    var a = tokens1[i];
+    var b = tokens2[i];
+
+    // Compare pairs of tokens, returning if one token sorts before the other.
+    if (a != b) {
+
+      // Only if both tokens are integers is a special comparison required.
+      // Decimal numbers are sorted as strings (e.g., '.09' < '.1').
+      var num1 = parseInt(a, 10);
+      if (!isNaN(num1)) {
+        var num2 = parseInt(b, 10);
+        if (!isNaN(num2) && num1 - num2) {
+          return num1 - num2;
+        }
+      }
+      return a < b ? -1 : 1;
+    }
+  }
+
+  // If one string is a substring of the other, the shorter string sorts first.
+  if (tokens1.length != tokens2.length) {
+    return tokens1.length - tokens2.length;
+  }
+
+  // The two strings must be equivalent except for case (perfect equality is
+  // tested at the head of the function.) Revert to default ASCII-betical string
+  // comparison to stablize the sort.
+  return str1 < str2 ? -1 : 1;
+};
+
+
+/**
+ * Regular expression used for determining if a string needs to be encoded.
+ * @type {RegExp}
+ * @private
+ */
+goog.string.encodeUriRegExp_ = /^[a-zA-Z0-9\-_.!~*'()]*$/;
+
+/**
+ * URL-encodes a string
+ * @param {*} str The string to url-encode.
+ * @return {string} An encoded copy of {@code str} that is safe for urls.
+ *     Note that '#', ':', and other characters used to delimit portions
+ *     of URLs *will* be encoded.
+ */
+goog.string.urlEncode = function(str) {
+  str = String(str);
+  // Checking if the search matches before calling encodeURIComponent avoids an
+  // extra allocation in IE6. This adds about 10us time in FF and a similiar
+  // over head in IE6 for lower working set apps, but for large working set
+  // apps like Gmail, it saves about 70us per call.
+  if (!goog.string.encodeUriRegExp_.test(str)) {
+    return encodeURIComponent(str);
+  }
+  return str;
+};
+
+
+/**
+ * URL-decodes the string. We need to specially handle '+'s because
+ * the javascript library doesn't convert them to spaces.
+ * @param {string} str The string to url decode.
+ * @return {string} The decoded {@code str}.
+ */
+goog.string.urlDecode = function(str) {
+  return decodeURIComponent(str.replace(/\+/g, ' '));
+};
+
+
+/**
+ * Converts \n to <br>s or <br />s.
+ * @param {string} str The string in which to convert newlines.
+ * @param {boolean=} opt_xml Whether to use XML compatible tags.
+ * @return {string} A copy of {@code str} with converted newlines.
+ */
+goog.string.newLineToBr = function(str, opt_xml) {
+  return str.replace(/(\r\n|\r|\n)/g, opt_xml ? '<br />' : '<br>');
+};
+
+
+/**
+ * Escape double quote '"' characters in addition to '&', '<', and '>' so that a
+ * string can be included in an HTML tag attribute value within double quotes.
+ *
+ * It should be noted that > doesn't need to be escaped for the HTML or XML to
+ * be valid, but it has been decided to escape it for consistency with other
+ * implementations.
+ *
+ * NOTE(user):
+ * HtmlEscape is often called during the generation of large blocks of HTML.
+ * Using statics for the regular expressions and strings is an optimization
+ * that can more than half the amount of time IE spends in this function for
+ * large apps, since strings and regexes both contribute to GC allocations.
+ *
+ * Testing for the presence of a character before escaping increases the number
+ * of function calls, but actually provides a speed increase for the average
+ * case -- since the average case often doesn't require the escaping of all 4
+ * characters and indexOf() is much cheaper than replace().
+ * The worst case does suffer slightly from the additional calls, therefore the
+ * opt_isLikelyToContainHtmlChars option has been included for situations
+ * where all 4 HTML entities are very likely to be present and need escaping.
+ *
+ * Some benchmarks (times tended to fluctuate +-0.05ms):
+ *                                     FireFox                     IE6
+ * (no chars / average (mix of cases) / all 4 chars)
+ * no checks                     0.13 / 0.22 / 0.22         0.23 / 0.53 / 0.80
+ * indexOf                       0.08 / 0.17 / 0.26         0.22 / 0.54 / 0.84
+ * indexOf + re test             0.07 / 0.17 / 0.28         0.19 / 0.50 / 0.85
+ *
+ * An additional advantage of checking if replace actually needs to be called
+ * is a reduction in the number of object allocations, so as the size of the
+ * application grows the difference between the various methods would increase.
+ *
+ * @param {string} str string to be escaped.
+ * @param {boolean=} opt_isLikelyToContainHtmlChars Don't perform a check to see
+ *     if the character needs replacing - use this option if you expect each of
+ *     the characters to appear often. Leave false if you expect few html
+ *     characters to occur in your strings, such as if you are escaping HTML.
+ * @return {string} An escaped copy of {@code str}.
+ */
+goog.string.htmlEscape = function(str, opt_isLikelyToContainHtmlChars) {
+
+  if (opt_isLikelyToContainHtmlChars) {
+    return str.replace(goog.string.amperRe_, '&amp;')
+          .replace(goog.string.ltRe_, '&lt;')
+          .replace(goog.string.gtRe_, '&gt;')
+          .replace(goog.string.quotRe_, '&quot;');
+
+  } else {
+    // quick test helps in the case when there are no chars to replace, in
+    // worst case this makes barely a difference to the time taken
+    if (!goog.string.allRe_.test(str)) return str;
+
+    // str.indexOf is faster than regex.test in this case
+    if (str.indexOf('&') != -1) {
+      str = str.replace(goog.string.amperRe_, '&amp;');
+    }
+    if (str.indexOf('<') != -1) {
+      str = str.replace(goog.string.ltRe_, '&lt;');
+    }
+    if (str.indexOf('>') != -1) {
+      str = str.replace(goog.string.gtRe_, '&gt;');
+    }
+    if (str.indexOf('"') != -1) {
+      str = str.replace(goog.string.quotRe_, '&quot;');
+    }
+    return str;
+  }
+};
+
+
+/**
+ * Regular expression that matches an ampersand, for use in escaping.
+ * @type {RegExp}
+ * @private
+ */
+goog.string.amperRe_ = /&/g;
+
+
+/**
+ * Regular expression that matches a less than sign, for use in escaping.
+ * @type {RegExp}
+ * @private
+ */
+goog.string.ltRe_ = /</g;
+
+
+/**
+ * Regular expression that matches a greater than sign, for use in escaping.
+ * @type {RegExp}
+ * @private
+ */
+goog.string.gtRe_ = />/g;
+
+
+/**
+ * Regular expression that matches a double quote, for use in escaping.
+ * @type {RegExp}
+ * @private
+ */
+goog.string.quotRe_ = /\"/g;
+
+
+/**
+ * Regular expression that matches any character that needs to be escaped.
+ * @type {RegExp}
+ * @private
+ */
+goog.string.allRe_ = /[&<>\"]/;
+
+
+/**
+ * Unescapes an HTML string.
+ *
+ * @param {string} str The string to unescape.
+ * @return {string} An unescaped copy of {@code str}.
+ */
+goog.string.unescapeEntities = function(str) {
+  if (goog.string.contains(str, '&')) {
+    // We are careful not to use a DOM if we do not have one. We use the []
+    // notation so that the JSCompiler will not complain about these objects and
+    // fields in the case where we have no DOM.
+    // If the string contains < then there could be a script tag in there and in
+    // that case we fall back to a non DOM solution as well.
+    if ('document' in goog.global && !goog.string.contains(str, '<')) {
+      return goog.string.unescapeEntitiesUsingDom_(str);
+    } else {
+      // Fall back on pure XML entities
+      return goog.string.unescapePureXmlEntities_(str);
+    }
+  }
+  return str;
+};
+
+
+/**
+ * Unescapes an HTML string using a DOM. Don't use this function directly, it
+ * should only be used by unescapeEntities. If used directly you will be
+ * vulnerable to XSS attacks.
+ * @private
+ * @param {string} str The string to unescape.
+ * @return {string} The unescaped {@code str} string.
+ */
+goog.string.unescapeEntitiesUsingDom_ = function(str) {
+  var el = goog.global['document']['createElement']('a');
+  el['innerHTML'] = str;
+  // Accesing the function directly triggers some virus scanners.
+  if (el[goog.string.NORMALIZE_FN_]) {
+    el[goog.string.NORMALIZE_FN_]();
+  }
+  str = el['firstChild']['nodeValue'];
+  el['innerHTML'] = '';
+  return str;
+};
+
+
+/**
+ * Unescapes XML entities.
+ * @private
+ * @param {string} str The string to unescape.
+ * @return {string} An unescaped copy of {@code str}.
+ */
+goog.string.unescapePureXmlEntities_ = function(str) {
+  return str.replace(/&([^;]+);/g, function(s, entity) {
+    switch (entity) {
+      case 'amp':
+        return '&';
+      case 'lt':
+        return '<';
+      case 'gt':
+        return '>';
+      case 'quot':
+        return '"';
+      default:
+        if (entity.charAt(0) == '#') {
+          var n = Number('0' + entity.substr(1));
+          if (!isNaN(n)) {
+            return String.fromCharCode(n);
+          }
+        }
+        // For invalid entities we just return the entity
+        return s;
+    }
+  });
+};
+
+/**
+ * String name for the node.normalize function. Anti-virus programs use this as
+ * a signature for some viruses so we need a work around (temporary).
+ * @private
+ * @type {string}
+ */
+goog.string.NORMALIZE_FN_ = 'normalize';
+
+/**
+ * Do escaping of whitespace to preserve spatial formatting. We use character
+ * entity #160 to make it safer for xml.
+ * @param {string} str The string in which to escape whitespace.
+ * @param {boolean=} opt_xml Whether to use XML compatible tags.
+ * @return {string} An escaped copy of {@code str}.
+ */
+goog.string.whitespaceEscape = function(str, opt_xml) {
+  return goog.string.newLineToBr(str.replace(/  /g, ' &#160;'), opt_xml);
+};
+
+
+/**
+ * Strip quote characters around a string.  The second argument is a string of
+ * characters to treat as quotes.  This can be a single character or a string of
+ * multiple character and in that case each of those are treated as possible
+ * quote characters. For example:
+ *
+ * <pre>
+ * goog.string.stripQuotes('"abc"', '"`') --> 'abc'
+ * goog.string.stripQuotes('`abc`', '"`') --> 'abc'
+ * </pre>
+ *
+ * @param {string} str The string to strip.
+ * @param {string} quoteChars The quote characters to strip.
+ * @return {string} A copy of {@code str} without the quotes.
+ */
+goog.string.stripQuotes = function(str, quoteChars) {
+  var length = quoteChars.length;
+  for (var i = 0; i < length; i++) {
+    var quoteChar = length == 1 ? quoteChars : quoteChars.charAt(i);
+    if (str.charAt(0) == quoteChar && str.charAt(str.length - 1) == quoteChar) {
+      return str.substring(1, str.length - 1);
+    }
+  }
+  return str;
+};
+
+
+/**
+ * Truncates a string to a certain length and adds '...' if necessary.  The
+ * length also accounts for the ellipsis, so a maximum length of 10 and a string
+ * 'Hello World!' produces 'Hello W...'.
+ * @param {string} str The string to truncate.
+ * @param {number} chars Max number of characters.
+ * @param {boolean=} opt_protectEscapedCharacters Whether to protect escaped
+ *     characters from being cut off in the middle.
+ * @return {string} The truncated {@code str} string.
+ */
+goog.string.truncate = function(str, chars, opt_protectEscapedCharacters) {
+  if (opt_protectEscapedCharacters) {
+    str = goog.string.unescapeEntities(str);
+  }
+
+  if (str.length > chars) {
+    str = str.substring(0, chars - 3) + '...';
+  }
+
+  if (opt_protectEscapedCharacters) {
+    str = goog.string.htmlEscape(str);
+  }
+
+  return str;
+};
+
+
+/**
+ * Truncate a string in the middle, adding "..." if necessary,
+ * and favoring the beginning of the string.
+ * @param {string} str The string to truncate the middle of.
+ * @param {number} chars Max number of characters.
+ * @param {boolean=} opt_protectEscapedCharacters Whether to protect escaped
+ *     characters from being cutoff in the middle.
+ * @return {string} A truncated copy of {@code str}.
+ */
+goog.string.truncateMiddle = function(str, chars,
+    opt_protectEscapedCharacters) {
+  if (opt_protectEscapedCharacters) {
+    str = goog.string.unescapeEntities(str);
+  }
+
+  if (str.length > chars) {
+    // Favor the beginning of the string:
+    var half = Math.floor(chars / 2);
+    var endPos = str.length - half;
+    half += chars % 2;
+    str = str.substring(0, half) + '...' + str.substring(endPos);
+  }
+
+  if (opt_protectEscapedCharacters) {
+    str = goog.string.htmlEscape(str);
+  }
+
+  return str;
+};
+
+
+/**
+ * Special chars that need to be escaped for goog.string.quote.
+ * @private
+ * @type {Object}
+ */
+goog.string.specialEscapeChars_ = {
+  '\0': '\\0',
+  '\b': '\\b',
+  '\f': '\\f',
+  '\n': '\\n',
+  '\r': '\\r',
+  '\t': '\\t',
+  '\x0B': '\\x0B', // '\v' is not supported in JScript
+  '"': '\\"',
+  '\\': '\\\\'
+};
+
+
+/**
+ * Character mappings used internally for goog.string.escapeChar.
+ * @private
+ * @type {Object}
+ */
+goog.string.jsEscapeCache_ = {
+  '\'': '\\\''
+};
+
+
+/**
+ * Encloses a string in double quotes and escapes characters so that the
+ * string is a valid JS string.
+ * @param {string} s The string to quote.
+ * @return {string} A copy of {@code s} surrounded by double quotes.
+ */
+goog.string.quote = function(s) {
+  s = String(s);
+  if (s.quote) {
+    return s.quote();
+  } else {
+    var sb = ['"'];
+    for (var i = 0; i < s.length; i++) {
+      var ch = s.charAt(i);
+      var cc = ch.charCodeAt(0);
+      sb[i + 1] = goog.string.specialEscapeChars_[ch] ||
+          ((cc > 31 && cc < 127) ? ch : goog.string.escapeChar(ch));
+    }
+    sb.push('"');
+    return sb.join('');
+  }
+};
+
+
+/**
+ * Takes a string and returns the escaped string for that charater.
+ * @param {string} str The string to escape.
+ * @return {string} An escaped string representing {@code str}.
+ */
+goog.string.escapeString = function(str) {
+  var sb = [];
+  for (var i = 0; i < str.length; i++) {
+    sb[i] = goog.string.escapeChar(str.charAt(i));
+  }
+  return sb.join('');
+};
+
+
+/**
+ * Takes a character and returns the escaped string for that character. For
+ * example escapeChar(String.fromCharCode(15)) -> "\\x0E".
+ * @param {string} c The character to escape.
+ * @return {string} An escaped string representing {@code c}.
+ */
+goog.string.escapeChar = function(c) {
+  if (c in goog.string.jsEscapeCache_) {
+    return goog.string.jsEscapeCache_[c];
+  }
+
+  if (c in goog.string.specialEscapeChars_) {
+    return goog.string.jsEscapeCache_[c] = goog.string.specialEscapeChars_[c];
+  }
+
+  var rv = c;
+  var cc = c.charCodeAt(0);
+  if (cc > 31 && cc < 127) {
+    rv = c;
+  } else {
+    // tab is 9 but handled above
+    if (cc < 256) {
+      rv = '\\x';
+      if (cc < 16 || cc > 256) {
+        rv += '0';
+      }
+    } else {
+      rv = '\\u';
+      if (cc < 4096) { // \u1000
+        rv += '0';
+      }
+    }
+    rv += cc.toString(16).toUpperCase();
+  }
+
+  return goog.string.jsEscapeCache_[c] = rv;
+};
+
+
+/**
+ * Takes a string and creates a map (Object) in which the keys are the
+ * characters in the string. The value for the key is set to true. You can
+ * then use goog.object.map or goog.array.map to change the values.
+ * @param {string} s The string to build the map from.
+ * @return {Object} The map of characters used.
+ */
+// TODO(user): It seems like we should have a generic goog.array.toMap. But do
+//            we want a dependency on goog.array in goog.string?
+goog.string.toMap = function(s) {
+  var rv = {};
+  for (var i = 0; i < s.length; i++) {
+    rv[s.charAt(i)] = true;
+  }
+  return rv;
+};
+
+
+/**
+ * Checks whether a string contains a given character.
+ * @param {string} s The string to test.
+ * @param {string} ss The substring to test for.
+ * @return {boolean} True if {@code s} contains {@code ss}.
+ */
+goog.string.contains = function(s, ss) {
+  return s.indexOf(ss) != -1;
+};
+
+
+/**
+ * Removes a substring of a specified length at a specific
+ * index in a string.
+ * @param {string} s The base string from which to remove.
+ * @param {number} index The index at which to remove the substring.
+ * @param {number} stringLength The length of the substring to remove.
+ * @return {string} A copy of {@code s} with the substring removed or the full
+ *     string if nothing is removed or the input is invalid.
+ */
+goog.string.removeAt = function(s, index, stringLength) {
+  var resultStr = s;
+  // If the index is greater or equal to 0 then remove substring
+  if (index >= 0 && index < s.length && stringLength > 0) {
+    resultStr = s.substr(0, index) +
+        s.substr(index + stringLength, s.length - index - stringLength);
+  }
+  return resultStr;
+};
+
+
+/**
+ *  Removes the first occurrence of a substring from a string.
+ *  @param {string} s The base string from which to remove.
+ *  @param {string} ss The string to remove.
+ *  @return {string} A copy of {@code s} with {@code ss} removed or the full
+ *      string if nothing is removed.
+ */
+goog.string.remove = function(s, ss) {
+  var re = new RegExp(goog.string.regExpEscape(ss), '');
+  return s.replace(re, '');
+};
+
+
+/**
+ *  Removes all occurrences of a substring from a string.
+ *  @param {string} s The base string from which to remove.
+ *  @param {string} ss The string to remove.
+ *  @return {string} A copy of {@code s} with {@code ss} removed or the full
+ *      string if nothing is removed.
+ */
+goog.string.removeAll = function(s, ss) {
+  var re = new RegExp(goog.string.regExpEscape(ss), 'g');
+  return s.replace(re, '');
+};
+
+
+/**
+ * Escapes characters in the string that are not safe to use in a RegExp.
+ * @param {*} s The string to escape. If not a string, it will be casted
+ *     to one.
+ * @return {string} A RegExp safe, escaped copy of {@code s}.
+ */
+goog.string.regExpEscape = function(s) {
+  return String(s).replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, '\\$1').
+                   replace(/\x08/g, '\\x08');
+};
+
+
+/**
+ * Repeats a string n times.
+ * @param {string} string The string to repeat.
+ * @param {number} length The number of times to repeat.
+ * @return {string} A string containing {@code length} repetitions of
+ *     {@code string}.
+ */
+goog.string.repeat = function(string, length) {
+  return new Array(length + 1).join(string);
+};
+
+
+/**
+ * Pads number to given length and optionally rounds it to a given precision.
+ * For example:
+ * <pre>padNumber(1.25, 2, 3) -> '01.250'
+ * padNumber(1.25, 2) -> '01.25'
+ * padNumber(1.25, 2, 1) -> '01.3'
+ * padNumber(1.25, 0) -> '1.25'</pre>
+ *
+ * @param {number} num The number to pad.
+ * @param {number} length The desired length.
+ * @param {number=} opt_precision The desired precision.
+ * @return {string} {@code num} as a string with the given options.
+ */
+goog.string.padNumber = function(num, length, opt_precision) {
+  var s = goog.isDef(opt_precision) ? num.toFixed(opt_precision) : String(num);
+  var index = s.indexOf('.');
+  if (index == -1) {
+    index = s.length;
+  }
+  return goog.string.repeat('0', Math.max(0, length - index)) + s;
+};
+
+
+/**
+ * Returns a string representation of the given object, with
+ * null and undefined being returned as the empty string.
+ *
+ * @param {*} obj The object to convert.
+ * @return {string} A string representation of the {@code obj}.
+ */
+goog.string.makeSafe = function(obj) {
+  return obj == null ? '' : String(obj);
+};
+
+
+/**
+ * Concatenates string expressions. This is useful
+ * since some browsers are very inefficient when it comes to using plus to
+ * concat strings. Be careful when using null and undefined here since
+ * these will not be included in the result. If you need to represent these
+ * be sure to cast the argument to a String first.
+ * For example:
+ * <pre>buildString('a', 'b', 'c', 'd') -> 'abcd'
+ * buildString(null, undefined) -> ''
+ * </pre>
+ * @param {...*} var_args A list of strings to concatenate. If not a string,
+ *     it will be casted to one.
+ * @return {string} The concatenation of {@code var_args}.
+ */
+goog.string.buildString = function(var_args) {
+  return Array.prototype.join.call(arguments, '');
+};
+
+
+/**
+ * Returns a string with at least 64-bits of randomness.
+ *
+ * Doesn't trust Javascript's random function entirely. Uses a combination of
+ * random and current timestamp, and then encodes the string in base-36 to
+ * make it shorter.
+ *
+ * @return {string} A random string, e.g. sn1s7vb4gcic.
+ */
+goog.string.getRandomString = function() {
+  return Math.floor(Math.random() * 2147483648).toString(36) +
+         (Math.floor(Math.random() * 2147483648) ^ goog.now()).toString(36);
+};
+
+
+/**
+ * Compares two version numbers.
+ *
+ * @param {string|number} version1 Version of first item.
+ * @param {string|number} version2 Version of second item.
+ *
+ * @return {number}  1 if {@code version1} is higher.
+ *                   0 if arguments are equal.
+ *                  -1 if {@code version2} is higher.
+ */
+goog.string.compareVersions = function(version1, version2) {
+  var order = 0;
+  // Trim leading and trailing whitespace and split the versions into
+  // subversions.
+  var v1Subs = goog.string.trim(String(version1)).split('.');
+  var v2Subs = goog.string.trim(String(version2)).split('.');
+  var subCount = Math.max(v1Subs.length, v2Subs.length);
+
+  // Iterate over the subversions, as long as they appear to be equivalent.
+  for (var subIdx = 0; order == 0 && subIdx < subCount; subIdx++) {
+    var v1Sub = v1Subs[subIdx] || '';
+    var v2Sub = v2Subs[subIdx] || '';
+
+    // Split the subversions into pairs of numbers and qualifiers (like 'b').
+    // Two different RegExp objects are needed because they are both using
+    // the 'g' flag.
+    var v1CompParser = new RegExp('(\\d*)(\\D*)', 'g');
+    var v2CompParser = new RegExp('(\\d*)(\\D*)', 'g');
+    do {
+      var v1Comp = v1CompParser.exec(v1Sub) || ['', '', ''];
+      var v2Comp = v2CompParser.exec(v2Sub) || ['', '', ''];
+      // Break if there are no more matches.
+      if (v1Comp[0].length == 0 && v2Comp[0].length == 0) {
+        break;
+      }
+
+      // Parse the numeric part of the subversion. A missing number is
+      // equivalent to 0.
+      var v1CompNum = v1Comp[1].length == 0 ? 0 : parseInt(v1Comp[1], 10);
+      var v2CompNum = v2Comp[1].length == 0 ? 0 : parseInt(v2Comp[1], 10);
+
+      // Compare the subversion components. The number has the highest
+      // precedence. Next, if the numbers are equal, a subversion without any
+      // qualifier is always higher than a subversion with any qualifier. Next,
+      // the qualifiers are compared as strings.
+      order = goog.string.compareElements_(v1CompNum, v2CompNum) ||
+          goog.string.compareElements_(v1Comp[2].length == 0,
+              v2Comp[2].length == 0) ||
+          goog.string.compareElements_(v1Comp[2], v2Comp[2]);
+    // Stop as soon as an inequality is discovered.
+    } while (order == 0);
+  }
+
+  return order;
+};
+
+
+/**
+ * Compares elements of a version number.
+ *
+ * @param {string|number|boolean} left An element from a version number.
+ * @param {string|number|boolean} right An element from a version number.
+ *
+ * @return {number}  1 if {@code left} is higher.
+ *                   0 if arguments are equal.
+ *                  -1 if {@code right} is higher.
+ * @private
+ */
+goog.string.compareElements_ = function(left, right) {
+  if (left < right) {
+    return -1;
+  } else if (left > right) {
+    return 1;
+  }
+  return 0;
+};
+
+
+/**
+ * Maximum value of #goog.string.hashCode, exclusive. 2^32.
+ * @type {number}
+ * @private
+ */
+goog.string.HASHCODE_MAX_ = 0x100000000;
+
+
+/**
+ * String hash function similar to java.lang.String.hashCode().
+ * The hash code for a string is computed as
+ * s[0] * 31 ^ (n - 1) + s[1] * 31 ^ (n - 2) + ... + s[n - 1],
+ * where s[i] is the ith character of the string and n is the length of
+ * the string. We mod the result to make it between 0 (inclusive) and 2^32
+ * (exclusive).
+ * @param {string} str A string.
+ * @return {number} Hash value for {@code str}, between 0 (inclusive) and 2^32
+ *  (exclusive). The empty string returns 0.
+ */
+goog.string.hashCode = function(str) {
+  var result = 0;
+  for (var i = 0; i < str.length; ++i) {
+    result = 31 * result + str.charCodeAt(i);
+    // Normalize to 4 byte range, 0 ... 2^32.
+    result %= goog.string.HASHCODE_MAX_;
+  }
+  return result;
+};
+
+
+/**
+ * The most recent unique ID. |0 is equivalent to Math.floor in this case.
+ * @type {number}
+ * @private
+ */
+goog.string.uniqueStringCounter_ = Math.random() * 0x80000000 | 0;
+
+
+/**
+ * Generates and returns a string which is unique in the current document.
+ * This is useful, for example, to create unique IDs for DOM elements.
+ * @return {string} A unique id.
+ */
+goog.string.createUniqueString = function() {
+  return 'goog_' + goog.string.uniqueStringCounter_++;
+};
+
+
+/**
+ * Converts the supplied string to a number, which may be Ininity or NaN.
+ * This function strips whitespace: (toNumber(' 123') === 123)
+ * This function accepts scientific notation: (toNumber('1e1') === 10)
+ *
+ * This is better than Javascript's built-in conversions because, sadly:
+ *     (Number(' ') === 0) and (parseFloat('123a') === 123)
+ *
+ * @param {string} str The string to convert.
+ * @return {number} The number the supplied string represents, or NaN.
+ */
+goog.string.toNumber = function(str) {
+  var num = Number(str);
+  if (num == 0 && goog.string.isEmpty(str)) {
+    return NaN;
+  }
+  return num;
+};
+
+// Input 3
+// Copyright 2008 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview Utilities to check the preconditions, postconditions and
+ * invariants runtime.
+ *
+ * Methods in this package should be given special treatment by the compiler
+ * for type-inference. For example, <code>goog.asserts.assert(foo)</code>
+ * will restrict <code>foo</code> to a truthy value.
+ *
+*
+ * @author agrieve@google.com (Andrew Grieve)
+ */
+
+goog.provide('goog.asserts');
+goog.provide('goog.asserts.AssertionError');
+
+goog.require('goog.debug.Error');
+goog.require('goog.string');
+
+// TODO(nicksantos): Add return values for all these functions, so that they
+// can be chained like:
+// eatNumber(goog.asserts.isNumber(foo));
+// for more lisp-y asserts.
+
+/**
+ * @define {boolean} Whether to strip out asserts or to leave them in.
+ */
+goog.asserts.ENABLE_ASSERTS = goog.DEBUG;
+
+
+/**
+ * Error object for failed assertions.
+ * @param {string} messagePattern The pattern that was used to form message.
+ * @param {!Array.<*>} messageArgs The items to substitute into the pattern.
+ * @constructor
+ * @extends {goog.debug.Error}
+ */
+goog.asserts.AssertionError = function(messagePattern, messageArgs) {
+  messageArgs.unshift(messagePattern);
+  goog.debug.Error.call(this, goog.string.subs.apply(null, messageArgs));
+  // Remove the messagePattern afterwards to avoid permenantly modifying the
+  // passed in array.
+  messageArgs.shift();
+
+  /**
+   * The message pattern used to format the error message. Error handlers can
+   * use this to uniquely identify the assertion.
+   * @type {string}
+   */
+  this.messagePattern = messagePattern;
+};
+goog.inherits(goog.asserts.AssertionError, goog.debug.Error);
+
+
+/** @inheritDoc */
+goog.asserts.AssertionError.prototype.name = 'AssertionError';
+
+
+/**
+ * Throws an exception with the given message and "Assertion failed" prefixed
+ * onto it.
+ * @param {string} defaultMessage The message to use if givenMessage is empty.
+ * @param {Array.<*>} defaultArgs The substitution arguments for defaultMessage.
+ * @param {string|undefined} givenMessage Message supplied by the caller.
+ * @param {Array.<*>} givenArgs The substitution arguments for givenMessage.
+ * @throws {goog.asserts.AssertionError} When the value is not a number.
+ * @private
+ */
+goog.asserts.doAssertFailure_ =
+    function(defaultMessage, defaultArgs, givenMessage, givenArgs) {
+  var message = 'Assertion failed';
+  if (givenMessage) {
+    message += ': ' + givenMessage;
+    var args = givenArgs;
+  } else if (defaultMessage) {
+    message += ': ' + defaultMessage;
+    args = defaultArgs;
+  }
+  // The '' + works around an Opera 10 bug in the unit tests. Without it,
+  // a stack trace is added to var message above. With this, a stack trace is
+  // not added until this line (it causes the extra garbage to be added after
+  // the assertion message instead of in the middle of it).
+  throw new goog.asserts.AssertionError('' + message, args || []);
+};
+
+
+/**
+ * Checks if the condition evaluates to true if goog.asserts.ENABLE_ASSERTS is
+ * true.
+ * @param {*} condition The condition to check.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @throws {goog.asserts.AssertionError} When the condition evaluates to false.
+ */
+goog.asserts.assert = function(condition, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !condition) {
+    goog.asserts.doAssertFailure_('', null, opt_message,
+        Array.prototype.slice.call(arguments, 2));
+  }
+};
+
+
+/**
+ * Fails if goog.asserts.ENABLE_ASSERTS is true. This function is useful in case
+ * when we want to add a check in the unreachable area like switch-case
+ * statement:
+ *
+ * <pre>
+ *  switch(type) {
+ *    case FOO: doSomething(); break;
+ *    case BAR: doSomethingElse(); break;
+ *    default: goog.assert.fail('Unrecognized type: ' + type);
+ *      // We have only 2 types - "default:" section is unreachable code.
+ *  }
+ * </pre>
+ *
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @throws {goog.asserts.AssertionError} Failure.
+ */
+goog.asserts.fail = function(opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS) {
+    throw new goog.asserts.AssertionError(
+        'Failure' + (opt_message ? ': ' + opt_message : ''),
+        Array.prototype.slice.call(arguments, 1));
+  }
+};
+
+
+/**
+ * Checks if the value is a number if goog.asserts.ENABLE_ASSERTS is true.
+ * @param {*} value The value to check.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @return {number} The value, guaranteed to be a number when asserts enabled.
+ * @throws {goog.asserts.AssertionError} When the value is not a number.
+ */
+goog.asserts.assertNumber = function(value, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !goog.isNumber(value)) {
+    goog.asserts.doAssertFailure_('Expected number but got %s.', [value],
+         opt_message, Array.prototype.slice.call(arguments, 2));
+  }
+  return /** @type {number} */ (value);
+};
+
+
+/**
+ * Checks if the value is a string if goog.asserts.ENABLE_ASSERTS is true.
+ * @param {*} value The value to check.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @return {string} The value, guaranteed to be a string when asserts enabled.
+ * @throws {goog.asserts.AssertionError} When the value is not a string.
+ */
+goog.asserts.assertString = function(value, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !goog.isString(value)) {
+    goog.asserts.doAssertFailure_('Expected string but got %s.', [value],
+         opt_message, Array.prototype.slice.call(arguments, 2));
+  }
+  return /** @type {string} */ (value);
+};
+
+
+/**
+ * Checks if the value is a function if goog.asserts.ENABLE_ASSERTS is true.
+ * @param {*} value The value to check.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @return {!Function} The value, guaranteed to be a function when asserts
+ *     enabled.
+ * @throws {goog.asserts.AssertionError} When the value is not a function.
+ */
+goog.asserts.assertFunction = function(value, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !goog.isFunction(value)) {
+    goog.asserts.doAssertFailure_('Expected function but got %s.', [value],
+         opt_message, Array.prototype.slice.call(arguments, 2));
+  }
+  return /** @type {!Function} */ (value);
+};
+
+
+/**
+ * Checks if the value is an Object if goog.asserts.ENABLE_ASSERTS is true.
+ * @param {*} value The value to check.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @return {!Object} The value, guaranteed to be a non-null object.
+ * @throws {goog.asserts.AssertionError} When the value is not an object.
+ */
+goog.asserts.assertObject = function(value, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !goog.isObject(value)) {
+    goog.asserts.doAssertFailure_('Expected object but got %s.', [value],
+         opt_message, Array.prototype.slice.call(arguments, 2));
+  }
+  return /** @type {!Object} */ (value);
+};
+
+
+/**
+ * Checks if the value is an Array if goog.asserts.ENABLE_ASSERTS is true.
+ * @param {*} value The value to check.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @return {!Array} The value, guaranteed to be a non-null array.
+ * @throws {goog.asserts.AssertionError} When the value is not an array.
+ */
+goog.asserts.assertArray = function(value, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !goog.isArray(value)) {
+    goog.asserts.doAssertFailure_('Expected array but got %s.', [value],
+         opt_message, Array.prototype.slice.call(arguments, 2));
+  }
+  return /** @type {!Array} */ (value);
+};
+
+
+/**
+ * Checks if the value is an instance of the user-defined type if
+ * goog.asserts.ENABLE_ASSERTS is true.
+ * @param {*} value The value to check.
+ * @param {!Function} type A user-defined constructor.
+ * @param {string=} opt_message Error message in case of failure.
+ * @param {...*} var_args The items to substitute into the failure message.
+ * @throws {goog.asserts.AssertionError} When the value is not an instance of
+ *     type.
+ */
+goog.asserts.assertInstanceof = function(value, type, opt_message, var_args) {
+  if (goog.asserts.ENABLE_ASSERTS && !(value instanceof type)) {
+    goog.asserts.doAssertFailure_('instanceof check failed.', null,
+         opt_message, Array.prototype.slice.call(arguments, 3));
+  }
+};
+
+
+// Input 4
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Utilities for manipulating arrays.
  *
+*
+*
+*
  */
 
 
 goog.provide('goog.array');
 
+goog.require('goog.asserts');
+
+
 
 /**
- * @type {Array|NodeList|Arguments|{length: number}}
+ * @typedef {Array|NodeList|Arguments|{length: number}}
  */
-goog.array.ArrayLike = goog.typedef;
+goog.array.ArrayLike;
 
 
 /**
@@ -1320,7 +2821,7 @@ goog.array.peek = function(array) {
 goog.array.ARRAY_PROTOTYPE_ = Array.prototype;
 
 
-// NOTE: Since most of the array functions are generic it allows you to
+// NOTE(user): Since most of the array functions are generic it allows you to
 // pass an array-like object. Strings have a length and are considered array-
 // like. However, the 'in' operator does not work on strings so we cannot just
 // use the array path even if the browser supports indexing into strings. We
@@ -1341,6 +2842,9 @@ goog.array.ARRAY_PROTOTYPE_ = Array.prototype;
  */
 goog.array.indexOf = goog.array.ARRAY_PROTOTYPE_.indexOf ?
     function(arr, obj, opt_fromIndex) {
+      goog.asserts.assert(arr || goog.isString(arr));
+      goog.asserts.assertNumber(arr.length);
+
       return goog.array.ARRAY_PROTOTYPE_.indexOf.call(arr, obj, opt_fromIndex);
     } :
     function(arr, obj, opt_fromIndex) {
@@ -1378,6 +2882,9 @@ goog.array.indexOf = goog.array.ARRAY_PROTOTYPE_.indexOf ?
  */
 goog.array.lastIndexOf = goog.array.ARRAY_PROTOTYPE_.lastIndexOf ?
     function(arr, obj, opt_fromIndex) {
+      goog.asserts.assert(arr || goog.isString(arr));
+      goog.asserts.assertNumber(arr.length);
+
       // Firefox treats undefined and null as 0 in the fromIndex argument which
       // leads it to always return -1
       var fromIndex = opt_fromIndex == null ? arr.length - 1 : opt_fromIndex;
@@ -1424,6 +2931,9 @@ goog.array.lastIndexOf = goog.array.ARRAY_PROTOTYPE_.lastIndexOf ?
  */
 goog.array.forEach = goog.array.ARRAY_PROTOTYPE_.forEach ?
     function(arr, f, opt_obj) {
+      goog.asserts.assert(arr || goog.isString(arr));
+      goog.asserts.assertNumber(arr.length);
+
       goog.array.ARRAY_PROTOTYPE_.forEach.call(arr, f, opt_obj);
     } :
     function(arr, f, opt_obj) {
@@ -1477,6 +2987,9 @@ goog.array.forEachRight = function(arr, f, opt_obj) {
  */
 goog.array.filter = goog.array.ARRAY_PROTOTYPE_.filter ?
     function(arr, f, opt_obj) {
+      goog.asserts.assert(arr || goog.isString(arr));
+      goog.asserts.assertNumber(arr.length);
+
       return goog.array.ARRAY_PROTOTYPE_.filter.call(arr, f, opt_obj);
     } :
     function(arr, f, opt_obj) {
@@ -1512,6 +3025,9 @@ goog.array.filter = goog.array.ARRAY_PROTOTYPE_.filter ?
  */
 goog.array.map = goog.array.ARRAY_PROTOTYPE_.map ?
     function(arr, f, opt_obj) {
+      goog.asserts.assert(arr || goog.isString(arr));
+      goog.asserts.assertNumber(arr.length);
+
       return goog.array.ARRAY_PROTOTYPE_.map.call(arr, f, opt_obj);
     } :
     function(arr, f, opt_obj) {
@@ -1620,6 +3136,9 @@ goog.array.reduceRight = function(arr, f, val, opt_obj) {
  */
 goog.array.some = goog.array.ARRAY_PROTOTYPE_.some ?
     function(arr, f, opt_obj) {
+      goog.asserts.assert(arr || goog.isString(arr));
+      goog.asserts.assertNumber(arr.length);
+
       return goog.array.ARRAY_PROTOTYPE_.some.call(arr, f, opt_obj);
     } :
     function(arr, f, opt_obj) {
@@ -1651,6 +3170,9 @@ goog.array.some = goog.array.ARRAY_PROTOTYPE_.some ?
  */
 goog.array.every = goog.array.ARRAY_PROTOTYPE_.every ?
     function(arr, f, opt_obj) {
+      goog.asserts.assert(arr || goog.isString(arr));
+      goog.asserts.assertNumber(arr.length);
+
       return goog.array.ARRAY_PROTOTYPE_.every.call(arr, f, opt_obj);
     } :
     function(arr, f, opt_obj) {
@@ -1860,6 +3382,9 @@ goog.array.remove = function(arr, obj) {
  * @return {boolean} True if an element was removed.
  */
 goog.array.removeAt = function(arr, i) {
+  goog.asserts.assert(arr || goog.isString(arr));
+  goog.asserts.assertNumber(arr.length);
+
   // use generic form of splice
   // splice returns the removed items and if successful the length of that
   // will be 1
@@ -2018,6 +3543,9 @@ goog.array.extend = function(arr1, var_args) {
  * @return {!Array} the removed elements.
  */
 goog.array.splice = function(arr, index, howMany, var_args) {
+  goog.asserts.assert(arr || goog.isString(arr));
+  goog.asserts.assertNumber(arr.length);
+
   return goog.array.ARRAY_PROTOTYPE_.splice.apply(
       arr, goog.array.slice(arguments, 1));
 };
@@ -2035,6 +3563,9 @@ goog.array.splice = function(arr, index, howMany, var_args) {
  *     array.
  */
 goog.array.slice = function(arr, start, opt_end) {
+  goog.asserts.assert(arr || goog.isString(arr));
+  goog.asserts.assertNumber(arr.length);
+
   // passing 1 arg to slice is not the same as passing 2 where the second is
   // null or undefined (in that case the second argument is treated as 0).
   // we could use slice on the arguments object and then use apply instead of
@@ -2052,8 +3583,8 @@ goog.array.slice = function(arr, start, opt_end) {
  * occurrence of each array element).  This function modifies the
  * array in place and doesn't change the order of the non-duplicate items.
  *
- * For objects, duplicates are identified as having the same hash code property
- * as defined by {@link goog.getHashCode}.
+ * For objects, duplicates are identified as having the same unique ID as
+ * defined by {@link goog.getUid}.
  *
  * Runtime: N,
  * Worstcase space: 2N (no dupes)
@@ -2068,9 +3599,9 @@ goog.array.removeDuplicates = function(arr, opt_rv) {
   var seen = {}, cursorInsert = 0, cursorRead = 0;
   while (cursorRead < arr.length) {
     var current = arr[cursorRead++];
-    var hc = goog.isObject(current) ? goog.getHashCode(current) : current;
-    if (!Object.prototype.hasOwnProperty.call(seen, hc)) {
-      seen[hc] = true;
+    var uid = goog.isObject(current) ? goog.getUid(current) : current;
+    if (!Object.prototype.hasOwnProperty.call(seen, uid)) {
+      seen[uid] = true;
       rv[cursorInsert++] = current;
     }
   }
@@ -2097,28 +3628,97 @@ goog.array.removeDuplicates = function(arr, opt_rv) {
  *     array is ordered. Should take 2 arguments to compare, and return a
  *     negative integer, zero, or a positive integer depending on whether the
  *     first argument is less than, equal to, or greater than the second.
- * @return {number} Index of the target value if found, otherwise
+ * @return {number} Lowest index of the target value if found, otherwise
  *     (-(insertion point) - 1). The insertion point is where the value should
  *     be inserted into arr to preserve the sorted property.  Return value >= 0
  *     iff target is found.
  */
 goog.array.binarySearch = function(arr, target, opt_compareFn) {
-  var left = 0;
-  var right = arr.length - 1;
-  var compareFn = opt_compareFn || goog.array.defaultCompare;
-  while (left <= right) {
-    var mid = (left + right) >> 1;
-    var compareResult = compareFn(target, arr[mid]);
-    if (compareResult > 0) {
-      left = mid + 1;
-    } else if (compareResult < 0) {
-      right = mid - 1;
+  return goog.array.binarySearch_(arr,
+      opt_compareFn || goog.array.defaultCompare, false /* isEvaluator */,
+      target);
+};
+
+
+/**
+ * Selects an index in the specified array using the binary search algorithm.
+ * The evaluator receives an element and determines whether the desired index
+ * is before, at, or after it.  The evaluator must be consistent (formally,
+ * goog.array.map(goog.array.map(arr, evaluator, opt_obj), goog.math.sign)
+ * must be monotonically non-increasing).
+ *
+ * Runtime: O(log n)
+ *
+ * @param {goog.array.ArrayLike} arr The array to be searched.
+ * @param {Function} evaluator Evaluator function that receives 3 arguments
+ *     (the element, the index and the array).  Should return a negative
+ *     integer, zero, or a positive integer depending on whether the
+ *     desired index is before, at, or after the element passed to it.
+ * @param {Object=} opt_obj The object to be used as the value of 'this'
+ *     within evaluator.
+ * @return {number} Index of the leftmost element matched by the evaluator, if
+ *     such exists; otherwise (-(insertion point) - 1). The insertion point is
+ *     the index of the first element for which the evaluator returns negative,
+ *     or arr.length if no such element exists. The return value is non-negative
+ *     iff a match is found.
+ */
+goog.array.binarySelect = function(arr, evaluator, opt_obj) {
+  return goog.array.binarySearch_(arr, evaluator, true /* isEvaluator */,
+      undefined /* opt_target */, opt_obj);
+};
+
+
+/**
+ * Implementation of a binary search algorithm which knows how to use both
+ * comparison functions and evaluators. If an evaluator is provided, will call
+ * the evaluator with the given optional data object, conforming to the
+ * interface defined in binarySelect. Otherwise, if a comparison function is
+ * provided, will call the comparison function against the given data object.
+ *
+ * This implementation purposefully does not use goog.bind or goog.partial for
+ * performance reasons.
+ *
+ * Runtime: O(log n)
+ *
+ * @param {goog.array.ArrayLike} arr The array to be searched.
+ * @param {Function} compareFn Either an evaluator or a comparison function,
+ *     as defined by binarySearch and binarySelect above.
+ * @param {boolean} isEvaluator Whether the function is an evaluator or a
+ *     comparison function.
+ * @param {*=} opt_target If the function is a comparison function, then this is
+ *     the target to binary search for.
+ * @param {Object=} opt_selfObj If the function is an evaluator, this is an
+  *    optional this object for the evaluator.
+ * @return {number} Lowest index of the target value if found, otherwise
+ *     (-(insertion point) - 1). The insertion point is where the value should
+ *     be inserted into arr to preserve the sorted property.  Return value >= 0
+ *     iff target is found.
+ * @private
+ */
+goog.array.binarySearch_ = function(arr, compareFn, isEvaluator, opt_target,
+    opt_selfObj) {
+  var left = 0;  // inclusive
+  var right = arr.length;  // exclusive
+  var found;
+  while (left < right) {
+    var middle = (left + right) >> 1;
+    var compareResult;
+    if (isEvaluator) {
+      compareResult = compareFn.call(opt_selfObj, arr[middle], middle, arr);
     } else {
-      return mid;
+      compareResult = compareFn(opt_target, arr[middle]);
+    }
+    if (compareResult > 0) {
+      left = middle + 1;
+    } else {
+      right = middle;
+      // We are looking for the lowest index so we can't return immediately.
+      found = !compareResult;
     }
   }
-  // Not found, left is the insertion point.
-  return -(left + 1);
+  // left is the index if found, or the insertion point otherwise.
+  // ~left is a shorthand for -left - 1.
+  return found ? left : ~left;
 };
 
 
@@ -2127,7 +3727,9 @@ goog.array.binarySearch = function(arr, target, opt_compareFn) {
  * specified, elements are compared using
  * <code>goog.array.defaultCompare</code>, which compares the elements using
  * the built in < and > operators.  This will produce the expected behavior
- * for homogeneous arrays of String(s) and Number(s).
+ * for homogeneous arrays of String(s) and Number(s), unlike the native sort,
+ * but will give unpredictable results for heterogenous lists of strings and
+ * numbers with different numbers of digits.
  *
  * This sort is not guaranteed to be stable.
  *
@@ -2140,6 +3742,10 @@ goog.array.binarySearch = function(arr, target, opt_compareFn) {
  *     first argument is less than, equal to, or greater than the second.
  */
 goog.array.sort = function(arr, opt_compareFn) {
+  // TODO(user): Update type annotation since null is not accepted.
+  goog.asserts.assert(arr || goog.isString(arr));
+  goog.asserts.assertNumber(arr.length);
+
   goog.array.ARRAY_PROTOTYPE_.sort.call(
       arr, opt_compareFn || goog.array.defaultCompare);
 };
@@ -2380,6 +3986,9 @@ goog.array.flatten = function(var_args) {
  * @return {!Array.<*>} The array.
  */
 goog.array.rotate = function(array, n) {
+  goog.asserts.assert(array || goog.isString(array));
+  goog.asserts.assertNumber(array.length);
+
   if (array.length) {
     n %= array.length;
     if (n > 0) {
@@ -2391,25 +4000,58 @@ goog.array.rotate = function(array, n) {
   return array;
 };
 
-// Input 2
+
+/**
+ * Creates a new array for which the element at position i is an array of the
+ * ith element of the provided arrays.  The returned array will only be as long
+ * as the shortest array provided; additional values are ignored.  For example,
+ * the result of zipping [1, 2] and [3, 4, 5] is [[1,3], [2, 4]].
+ *
+ * This is similar to the zip() function in Python.  See {@link
+ * http://docs.python.org/library/functions.html#zip}
+ *
+ * @param {...!goog.array.ArrayLike} var_args Arrays to be combined.
+ * @return {!Array.<!Array>} A new array of arrays created from provided arrays.
+ */
+goog.array.zip = function(var_args) {
+  if (!arguments.length) {
+    return [];
+  }
+  var result = [];
+  for (var i = 0; true; i++) {
+    var value = [];
+    for (var j = 0; j < arguments.length; j++) {
+      var arr = arguments[j];
+      // If i is larger than the array length, this is the shortest array.
+      if (i >= arr.length) {
+        return result;
+      }
+      value.push(arr[i]);
+    }
+    result.push(value);
+  }
+};
+
+// Input 5
+// Copyright 2007 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Copyright 2007 Google Inc. All Rights Reserved.
 
 /**
  * @fileoverview Defines the goog.dom.TagName enum.  This enumerates
  * all html tag names specified by the W3C HTML 4.01 Specification.
  * Reference http://www.w3.org/TR/html401/index/elements.html.
+*
  */
 goog.provide('goog.dom.TagName');
 
@@ -2512,24 +4154,26 @@ goog.dom.TagName = {
   VAR: 'VAR'
 };
 
-// Input 3
+// Input 6
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Utilities for adding, removing and setting classes.
  *
+*
+*
  */
 
 
@@ -2671,10 +4315,15 @@ goog.dom.classes.swap = function(element, fromClass, toClass) {
 
 
 /**
- * Adds zero or more classes to and element and and removes zero or more as a
- * single operation. Unlike calling {@link goog.dom.classes.add} and
- * {@link goog.dom.classes.remove} separately this is more efficient as it only
+ * Adds zero or more classes to an element and removes zero or more as a single
+ * operation. Unlike calling {@link goog.dom.classes.add} and
+ * {@link goog.dom.classes.remove} separately, this is more efficient as it only
  * parses the class property once.
+ *
+ * If a class is in both the remove and add lists, it will be added. Thus,
+ * you can use this instead of {@link goog.dom.classes.swap} when you have
+ * more than two class names that you want to swap.
+ *
  * @param {Node} element DOM node to swap classes on.
  * @param {string|Array.<string>|null} classesToRemove Class or classes to
  *     remove, if null no classes are removed.
@@ -2742,23 +4391,24 @@ goog.dom.classes.toggle = function(element, className) {
   return add;
 };
 
-// Input 4
+// Input 7
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview A utility class for representing two-dimensional positions.
+*
  */
 
 
@@ -2879,23 +4529,25 @@ goog.math.Coordinate.sum = function(a, b) {
   return new goog.math.Coordinate(a.x + b.x, a.y + b.y);
 };
 
-// Input 5
+// Input 8
+// Copyright 2007 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2007 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview A utility class for representing two-dimensional sizes.
+*
+*
  */
 
 
@@ -3074,23 +4726,26 @@ goog.math.Size.prototype.scaleToFit = function(target) {
   return this.scale(s);
 };
 
-// Input 6
+// Input 9
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Utilities for manipulating objects/maps/hashes.
+*
+*
+*
  */
 
 goog.provide('goog.object');
@@ -3603,1146 +5258,28 @@ goog.object.createSet = function(var_args) {
   return rv;
 };
 
-// Input 7
+// Input 10
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Copyright 2006 Google Inc. All Rights Reserved.
-
-/**
- * @fileoverview Utilities for string manipulation.
- */
-
-
-/**
- * Namespace for string utilities
- */
-goog.provide('goog.string');
-goog.provide('goog.string.Unicode');
-
-
-/**
- * Common Unicode string characters.
- * @enum {string}
- */
-goog.string.Unicode = {
-  NBSP: '\xa0'
-};
-
-
-/**
- * Fast prefix-checker.
- * @param {string} str The string to check.
- * @param {string} prefix A string to look for at the start of {@code str}.
- * @return {boolean} True if {@code str} begins with {@code prefix}.
- */
-goog.string.startsWith = function(str, prefix) {
-  return str.lastIndexOf(prefix, 0) == 0;
-};
-
-
-/**
- * Fast suffix-checker.
- * @param {string} str The string to check.
- * @param {string} suffix A string to look for at the end of {@code str}.
- * @return {boolean} True if {@code str} ends with {@code suffix}.
- */
-goog.string.endsWith = function(str, suffix) {
-  var l = str.length - suffix.length;
-  return l >= 0 && str.indexOf(suffix, l) == l;
-};
-
-
-/**
- * Case-insensitive prefix-checker.
- * @param {string} str The string to check.
- * @param {string} prefix  A string to look for at the end of {@code str}.
- * @return {boolean} True if {@code str} begins with {@code prefix} (ignoring
- *     case).
- */
-goog.string.caseInsensitiveStartsWith = function(str, prefix) {
-  return goog.string.caseInsensitiveCompare(
-      prefix, str.substr(0, prefix.length)) == 0;
-};
-
-
-/**
- * Case-insensitive suffix-checker.
- * @param {string} str The string to check.
- * @param {string} suffix A string to look for at the end of {@code str}.
- * @return {boolean} True if {@code str} ends with {@code suffix} (ignoring
- *     case).
- */
-goog.string.caseInsensitiveEndsWith = function(str, suffix) {
-  return goog.string.caseInsensitiveCompare(
-      suffix, str.substr(str.length - suffix.length, suffix.length)) == 0;
-};
-
-
-/**
- * Does simple python-style string substitution.
- * subs("foo%s hot%s", "bar", "dog") becomes "foobar hotdog".
- * @param {string} str The string containing the pattern.
- * @param {...*} var_args The items to substitute into the pattern.
- * @return {string} A copy of {@code str} in which each occurrence of
- *     {@code %s} has been replaced an argument from {@code var_args}.
- */
-goog.string.subs = function(str, var_args) {
-  // This appears to be slow, but testing shows it compares more or less
-  // equivalent to the regex.exec method.
-  for (var i = 1; i < arguments.length; i++) {
-    // We cast to String in case an argument is a Function.  Replacing $&, for
-    // example, with $$$& stops the replace from subsituting the whole match
-    // into the resultant string.  $$$& in the first replace becomes $$& in the
-    //  second, which leaves $& in the resultant string.  Also:
-    // $$, $`, $', $n $nn
-    var replacement = String(arguments[i]).replace(/\$/g, '$$$$');
-    str = str.replace(/\%s/, replacement);
-  }
-  return str;
-};
-
-
-/**
- * Converts multiple whitespace chars (spaces, non-breaking-spaces, new lines
- * and tabs) to a single space, and strips leading and trailing whitespace.
- * @param {string} str Input string.
- * @return {string} A copy of {@code str} with collapsed whitespace.
- */
-goog.string.collapseWhitespace = function(str) {
-  // Since IE doesn't include non-breaking-space (0xa0) in their \s character
-  // class (as required by section 7.2 of the ECMAScript spec), we explicitly
-  // include it in the regexp to enforce consistent cross-browser behavior.
-  return str.replace(/[\s\xa0]+/g, ' ').replace(/^\s+|\s+$/g, '');
-};
-
-
-/**
- * Checks if a string is empty or contains only whitespaces.
- * @param {string} str The string to check.
- * @return {boolean} True if {@code str} is empty or whitespace only.
- */
-goog.string.isEmpty = function(str) {
-  // testing length == 0 first is actually slower in all browsers (about the
-  // same in Opera).
-  // Since IE doesn't include non-breaking-space (0xa0) in their \s character
-  // class (as required by section 7.2 of the ECMAScript spec), we explicitly
-  // include it in the regexp to enforce consistent cross-browser behavior.
-  return /^[\s\xa0]*$/.test(str);
-};
-
-
-/**
- * Checks if a string is null, empty or contains only whitespaces.
- * @param {*} str The string to check.
- * @return {boolean} True if{@code str} is null, empty, or whitespace only.
- */
-goog.string.isEmptySafe = function(str) {
-  return goog.string.isEmpty(goog.string.makeSafe(str));
-};
-
-
-/**
- * Checks if a string is all breaking whitespace.
- * @param {string} str The string to check.
- * @return {boolean} Whether the string is all breaking whitespace.
- */
-goog.string.isBreakingWhitespace = function(str) {
-  return !/[^\t\n\r ]/.test(str);
-};
-
-
-/**
- * Checks if a string contains all letters.
- * @param {string} str string to check.
- * @return {boolean} True if {@code str} consists entirely of letters.
- */
-goog.string.isAlpha = function(str) {
-  return !/[^a-zA-Z]/.test(str);
-};
-
-
-/**
- * Checks if a string contains only numbers.
- * @param {*} str string to check. If not a string, it will be
- *     casted to one.
- * @return {boolean} True if {@code str} is numeric.
- */
-goog.string.isNumeric = function(str) {
-  return !/[^0-9]/.test(str);
-};
-
-
-/**
- * Checks if a string contains only numbers or letters.
- * @param {string} str string to check.
- * @return {boolean} True if {@code str} is alphanumeric.
- */
-goog.string.isAlphaNumeric = function(str) {
-  return !/[^a-zA-Z0-9]/.test(str);
-};
-
-
-/**
- * Checks if a character is a space character.
- * @param {string} ch Character to check.
- * @return {boolean} True if {code ch} is a space.
- */
-goog.string.isSpace = function(ch) {
-  return ch == ' ';
-};
-
-
-/**
- * Checks if a character is a valid unicode character.
- * @param {string} ch Character to check.
- * @return {boolean} True if {code ch} is a valid unicode character.
- */
-goog.string.isUnicodeChar = function(ch) {
-  return ch.length == 1 && ch >= ' ' && ch <= '~' ||
-         ch >= '\u0080' && ch <= '\uFFFD';
-};
-
-
-/**
- * Takes a string and replaces newlines with a space. Multiple lines are
- * replaced with a single space.
- * @param {string} str The string from which to strip newlines.
- * @return {string} A copy of {@code str} stripped of newlines.
- */
-goog.string.stripNewlines = function(str) {
-  return str.replace(/(\r\n|\r|\n)+/g, ' ');
-};
-
-
-/**
- * Replaces Windows and Mac new lines with unix style: \r or \r\n with \n.
- * @param {string} str The string to in which to canonicalize newlines.
- * @return {string} {@code str} A copy of {@code} with canonicalized newlines.
- */
-goog.string.canonicalizeNewlines = function(str) {
-  return str.replace(/(\r\n|\r|\n)/g, '\n');
-};
-
-
-/**
- * Normalizes whitespace in a string, replacing all whitespace chars with
- * a space.
- * @param {string} str The string in which to normalize whitespace.
- * @return {string} A copy of {@code str} with all whitespace normalized.
- */
-goog.string.normalizeWhitespace = function(str) {
-  return str.replace(/\xa0|\s/g, ' ');
-};
-
-
-/**
- * Normalizes spaces in a string, replacing all consecutive spaces and tabs
- * with a single space. Replaces non-breaking space with a space.
- * @param {string} str The string in which to normalize spaces.
- * @return {string} A copy of {@code str} with all consecutive spaces and tabs
- *    replaced with a single space.
- */
-goog.string.normalizeSpaces = function(str) {
-  return str.replace(/\xa0|[ \t]+/g, ' ');
-};
-
-
-/**
- * Trims white spaces to the left and right of a string.
- * @param {string} str The string to trim.
- * @return {string} A trimmed copy of {@code str}.
- */
-goog.string.trim = function(str) {
-  // Since IE doesn't include non-breaking-space (0xa0) in their \s character
-  // class (as required by section 7.2 of the ECMAScript spec), we explicitly
-  // include it in the regexp to enforce consistent cross-browser behavior.
-  return str.replace(/^[\s\xa0]+|[\s\xa0]+$/g, '');
-};
-
-
-/**
- * Trims whitespaces at the left end of a string.
- * @param {string} str The string to left trim.
- * @return {string} A trimmed copy of {@code str}.
- */
-goog.string.trimLeft = function(str) {
-  // Since IE doesn't include non-breaking-space (0xa0) in their \s character
-  // class (as required by section 7.2 of the ECMAScript spec), we explicitly
-  // include it in the regexp to enforce consistent cross-browser behavior.
-  return str.replace(/^[\s\xa0]+/, '');
-};
-
-
-/**
- * Trims whitespaces at the right end of a string.
- * @param {string} str The string to right trim.
- * @return {string} A trimmed copy of {@code str}.
- */
-goog.string.trimRight = function(str) {
-  // Since IE doesn't include non-breaking-space (0xa0) in their \s character
-  // class (as required by section 7.2 of the ECMAScript spec), we explicitly
-  // include it in the regexp to enforce consistent cross-browser behavior.
-  return str.replace(/[\s\xa0]+$/, '');
-};
-
-
-/**
- * A string comparator that ignores case.
- * -1 = str1 less than str2
- *  0 = str1 equals str2
- *  1 = str1 greater than str2
- *
- * @param {string} str1 The string to compare.
- * @param {string} str2 The string to compare {@code str1} to.
- * @return {number} The comparator result, as described above.
- */
-goog.string.caseInsensitiveCompare = function(str1, str2) {
-  var test1 = String(str1).toLowerCase();
-  var test2 = String(str2).toLowerCase();
-
-  if (test1 < test2) {
-    return -1;
-  } else if (test1 == test2) {
-    return 0;
-  } else {
-    return 1;
-  }
-};
-
-
-/**
- * Regular expression used for splitting a string into substrings of fractional
- * numbers, integers, and non-numeric characters.
- * @type {RegExp}
- * @private
- */
-goog.string.numerateCompareRegExp_ = /(\.\d+)|(\d+)|(\D+)/g;
-
-
-/**
- * String comparison function that handles numbers in a way humans might expect.
- * Using this function, the string "File 2.jpg" sorts before "File 10.jpg". The
- * comparison is mostly case-insensitive, though strings that are identical
- * except for case are sorted with the upper-case strings before lower-case.
- *
- * This comparison function is significantly slower (about 500x) than either
- * the default or the case-insensitive compare. It should not be used in
- * time-critical code, but should be fast enough to sort several hundred short
- * strings (like filenames) with a reasonable delay.
- *
- * @param {string} str1 The string to compare in a numerically sensitive way.
- * @param {string} str2 The string to compare {@code str1} to.
- * @return {number} less than 0 if str1 < str2, 0 if str1 == str2, greater than
- *     0 if str1 > str2.
- */
-goog.string.numerateCompare = function(str1, str2) {
-  if (str1 == str2) {
-    return 0;
-  }
-  if (!str1) {
-    return -1;
-  }
-  if (!str2) {
-    return 1;
-  }
-
-  // Using match to split the entire string ahead of time turns out to be faster
-  // for most inputs than using RegExp.exec or iterating over each character.
-  var tokens1 = str1.toLowerCase().match(goog.string.numerateCompareRegExp_);
-  var tokens2 = str2.toLowerCase().match(goog.string.numerateCompareRegExp_);
-
-  var count = Math.min(tokens1.length, tokens2.length);
-
-  for (var i = 0; i < count; i++) {
-    var a = tokens1[i];
-    var b = tokens2[i];
-
-    // Compare pairs of tokens, returning if one token sorts before the other.
-    if (a != b) {
-
-      // Only if both tokens are integers is a special comparison required.
-      // Decimal numbers are sorted as strings (e.g., '.09' < '.1').
-      var num1 = parseInt(a, 10);
-      if (!isNaN(num1)) {
-        var num2 = parseInt(b, 10);
-        if (!isNaN(num2) && num1 - num2) {
-          return num1 - num2;
-        }
-      }
-      return a < b ? -1 : 1;
-    }
-  }
-
-  // If one string is a substring of the other, the shorter string sorts first.
-  if (tokens1.length != tokens2.length) {
-    return tokens1.length - tokens2.length;
-  }
-
-  // The two strings must be equivalent except for case (perfect equality is
-  // tested at the head of the function.) Revert to default ASCII-betical string
-  // comparison to stablize the sort.
-  return str1 < str2 ? -1 : 1;
-};
-
-
-/**
- * Regular expression used for determining if a string needs to be encoded.
- * @type {RegExp}
- * @private
- */
-goog.string.encodeUriRegExp_ = /^[a-zA-Z0-9\-_.!~*'()]*$/;
-
-/**
- * URL-encodes a string
- * @param {*} str The string to url-encode.
- * @return {string} An encoded copy of {@code str} that is safe for urls.
- *     Note that '#', ':', and other characters used to delimit portions
- *     of URLs *will* be encoded.
- */
-goog.string.urlEncode = function(str) {
-  str = String(str);
-  // Checking if the search matches before calling encodeURIComponent avoids an
-  // extra allocation in IE6. This adds about 10us time in FF and a similiar
-  // over head in IE6 for lower working set apps, but for large working set
-  // apps like Gmail, it saves about 70us per call.
-  if (!goog.string.encodeUriRegExp_.test(str)) {
-    return encodeURIComponent(str);
-  }
-  return str;
-};
-
-
-/**
- * URL-decodes the string. We need to specially handle '+'s because
- * the javascript library doesn't convert them to spaces.
- * @param {string} str The string to url decode.
- * @return {string} The decoded {@code str}.
- */
-goog.string.urlDecode = function(str) {
-  return decodeURIComponent(str.replace(/\+/g, ' '));
-};
-
-
-/**
- * Converts \n to <br>s or <br />s.
- * @param {string} str The string in which to convert newlines.
- * @param {boolean=} opt_xml Whether to use XML compatible tags.
- * @return {string} A copy of {@code str} with converted newlines.
- */
-goog.string.newLineToBr = function(str, opt_xml) {
-  return str.replace(/(\r\n|\r|\n)/g, opt_xml ? '<br />' : '<br>');
-};
-
-
-/**
- * Escape double quote '"' characters in addition to '&', '<', and '>' so that a
- * string can be included in an HTML tag attribute value within double quotes.
- *
- * It should be noted that > doesn't need to be escaped for the HTML or XML to
- * be valid, but it has been decided to escape it for consistency with other
- * implementations.
- *
- * NOTE:
- * HtmlEscape is often called during the generation of large blocks of HTML.
- * Using statics for the regular expressions and strings is an optimization
- * that can more than half the amount of time IE spends in this function for
- * large apps, since strings and regexes both contribute to GC allocations.
- *
- * Testing for the presence of a character before escaping increases the number
- * of function calls, but actually provides a speed increase for the average
- * case -- since the average case often doesn't require the escaping of all 4
- * characters and indexOf() is much cheaper than replace().
- * The worst case does suffer slightly from the additional calls, therefore the
- * opt_isLikelyToContainHtmlChars option has been included for situations
- * where all 4 HTML entities are very likely to be present and need escaping.
- *
- * Some benchmarks (times tended to fluctuate +-0.05ms):
- *                                     FireFox                     IE6
- * (no chars / average (mix of cases) / all 4 chars)
- * no checks                     0.13 / 0.22 / 0.22         0.23 / 0.53 / 0.80
- * indexOf                       0.08 / 0.17 / 0.26         0.22 / 0.54 / 0.84
- * indexOf + re test             0.07 / 0.17 / 0.28         0.19 / 0.50 / 0.85
- *
- * An additional advantage of checking if replace actually needs to be called
- * is a reduction in the number of object allocations, so as the size of the
- * application grows the difference between the various methods would increase.
- *
- * @param {string} str string to be escaped.
- * @param {boolean=} opt_isLikelyToContainHtmlChars Don't perform a check to see
- *     if the character needs replacing - use this option if you expect each of
- *     the characters to appear often. Leave false if you expect few html
- *     characters to occur in your strings, such as if you are escaping HTML.
- * @return {string} An escaped copy of {@code str}.
- */
-goog.string.htmlEscape = function(str, opt_isLikelyToContainHtmlChars) {
-
-  if (opt_isLikelyToContainHtmlChars) {
-    return str.replace(goog.string.amperRe_, '&amp;')
-          .replace(goog.string.ltRe_, '&lt;')
-          .replace(goog.string.gtRe_, '&gt;')
-          .replace(goog.string.quotRe_, '&quot;');
-
-  } else {
-    // quick test helps in the case when there are no chars to replace, in
-    // worst case this makes barely a difference to the time taken
-    if (!goog.string.allRe_.test(str)) return str;
-
-    // str.indexOf is faster than regex.test in this case
-    if (str.indexOf('&') != -1) {
-      str = str.replace(goog.string.amperRe_, '&amp;');
-    }
-    if (str.indexOf('<') != -1) {
-      str = str.replace(goog.string.ltRe_, '&lt;');
-    }
-    if (str.indexOf('>') != -1) {
-      str = str.replace(goog.string.gtRe_, '&gt;');
-    }
-    if (str.indexOf('"') != -1) {
-      str = str.replace(goog.string.quotRe_, '&quot;');
-    }
-    return str;
-  }
-};
-
-
-/**
- * Regular expression that matches an ampersand, for use in escaping.
- * @type {RegExp}
- * @private
- */
-goog.string.amperRe_ = /&/g;
-
-
-/**
- * Regular expression that matches a less than sign, for use in escaping.
- * @type {RegExp}
- * @private
- */
-goog.string.ltRe_ = /</g;
-
-
-/**
- * Regular expression that matches a greater than sign, for use in escaping.
- * @type {RegExp}
- * @private
- */
-goog.string.gtRe_ = />/g;
-
-
-/**
- * Regular expression that matches a double quote, for use in escaping.
- * @type {RegExp}
- * @private
- */
-goog.string.quotRe_ = /\"/g;
-
-
-/**
- * Regular expression that matches any character that needs to be escaped.
- * @type {RegExp}
- * @private
- */
-goog.string.allRe_ = /[&<>\"]/;
-
-
-/**
- * Unescapes an HTML string.
- *
- * @param {string} str The string to unescape.
- * @return {string} An unescaped copy of {@code str}.
- */
-goog.string.unescapeEntities = function(str) {
-  if (goog.string.contains(str, '&')) {
-    // We are careful not to use a DOM if we do not have one. We use the []
-    // notation so that the JSCompiler will not complain about these objects and
-    // fields in the case where we have no DOM.
-    // If the string contains < then there could be a script tag in there and in
-    // that case we fall back to a non DOM solution as well.
-    if ('document' in goog.global && !goog.string.contains(str, '<')) {
-      return goog.string.unescapeEntitiesUsingDom_(str);
-    } else {
-      // Fall back on pure XML entities
-      return goog.string.unescapePureXmlEntities_(str);
-    }
-  }
-  return str;
-};
-
-
-/**
- * Unescapes an HTML string using a DOM. Don't use this function directly, it
- * should only be used by unescapeEntities. If used directly you will be
- * vulnerable to XSS attacks.
- * @private
- * @param {string} str The string to unescape.
- * @return {string} The unescaped {@code str} string.
- */
-goog.string.unescapeEntitiesUsingDom_ = function(str) {
-  var el = goog.global['document']['createElement']('a');
-  el['innerHTML'] = str;
-  // Accesing the function directly triggers some virus scanners.
-  if (el[goog.string.NORMALIZE_FN_]) {
-    el[goog.string.NORMALIZE_FN_]();
-  }
-  str = el['firstChild']['nodeValue'];
-  el['innerHTML'] = '';
-  return str;
-};
-
-
-/**
- * Unescapes XML entities.
- * @private
- * @param {string} str The string to unescape.
- * @return {string} An unescaped copy of {@code str}.
- */
-goog.string.unescapePureXmlEntities_ = function(str) {
-  return str.replace(/&([^;]+);/g, function(s, entity) {
-    switch (entity) {
-      case 'amp':
-        return '&';
-      case 'lt':
-        return '<';
-      case 'gt':
-        return '>';
-      case 'quot':
-        return '"';
-      default:
-        if (entity.charAt(0) == '#') {
-          var n = Number('0' + entity.substr(1));
-          if (!isNaN(n)) {
-            return String.fromCharCode(n);
-          }
-        }
-        // For invalid entities we just return the entity
-        return s;
-    }
-  });
-};
-
-/**
- * String name for the node.normalize function. Anti-virus programs use this as
- * a signature for some viruses so we need a work around (temporary).
- * @private
- * @type {string}
- */
-goog.string.NORMALIZE_FN_ = 'normalize';
-
-/**
- * Do escaping of whitespace to preserve spatial formatting. We use character
- * entity #160 to make it safer for xml.
- * @param {string} str The string in which to escape whitespace.
- * @param {boolean=} opt_xml Whether to use XML compatible tags.
- * @return {string} An escaped copy of {@code str}.
- */
-goog.string.whitespaceEscape = function(str, opt_xml) {
-  return goog.string.newLineToBr(str.replace(/  /g, ' &#160;'), opt_xml);
-};
-
-
-/**
- * Strip quote characters around a string.  The second argument is a string of
- * characters to treat as quotes.  This can be a single character or a string of
- * multiple character and in that case each of those are treated as possible
- * quote characters. For example:
- *
- * <pre>
- * goog.string.stripQuotes('"abc"', '"`') --> 'abc'
- * goog.string.stripQuotes('`abc`', '"`') --> 'abc'
- * </pre>
- *
- * @param {string} str The string to strip.
- * @param {string} quoteChars The quote characters to strip.
- * @return {string} A copy of {@code str} without the quotes.
- *
- */
-goog.string.stripQuotes = function(str, quoteChars) {
-  var length = quoteChars.length;
-  for (var i = 0; i < length; i++) {
-    var quoteChar = length == 1 ? quoteChars : quoteChars.charAt(i);
-    if (str.charAt(0) == quoteChar && str.charAt(str.length - 1) == quoteChar) {
-      return str.substring(1, str.length - 1);
-    }
-  }
-  return str;
-};
-
-
-/**
- * Truncates a string to a certain length and adds '...' if necessary.  The
- * length also accounts for the ellipsis, so a maximum length of 10 and a string
- * 'Hello World!' produces 'Hello W...'.
- * @param {string} str The string to truncate.
- * @param {number} chars Max number of characters.
- * @param {boolean=} opt_protectEscapedCharacters Whether to protect escaped
- *     characters from being cut off in the middle.
- * @return {string} The truncated {@code str} string.
- */
-goog.string.truncate = function(str, chars, opt_protectEscapedCharacters) {
-  if (opt_protectEscapedCharacters) {
-    str = goog.string.unescapeEntities(str);
-  }
-
-  if (str.length > chars) {
-    str = str.substring(0, chars - 3) + '...';
-  }
-
-  if (opt_protectEscapedCharacters) {
-    str = goog.string.htmlEscape(str);
-  }
-
-  return str;
-};
-
-
-/**
- * Truncate a string in the middle, adding "..." if necessary,
- * and favoring the beginning of the string.
- * @param {string} str The string to truncate the middle of.
- * @param {number} chars Max number of characters.
- * @param {boolean=} opt_protectEscapedCharacters Whether to protect escaped
- *     characters from being cutoff in the middle.
- * @return {string} A truncated copy of {@code str}.
- */
-goog.string.truncateMiddle = function(str, chars,
-    opt_protectEscapedCharacters) {
-  if (opt_protectEscapedCharacters) {
-    str = goog.string.unescapeEntities(str);
-  }
-
-  if (str.length > chars) {
-    // Favor the beginning of the string:
-    var half = Math.floor(chars / 2);
-    var endPos = str.length - half;
-    half += chars % 2;
-    str = str.substring(0, half) + '...' + str.substring(endPos);
-  }
-
-  if (opt_protectEscapedCharacters) {
-    str = goog.string.htmlEscape(str);
-  }
-
-  return str;
-};
-
-
-/**
- * Character mappings used internally for goog.string.quote.
- * @private
- * @type {Object}
- */
-goog.string.jsEscapeCache_ = {
-  '\b': '\\b',
-  '\f': '\\f',
-  '\n': '\\n',
-  '\r': '\\r',
-  '\t': '\\t',
-  '\x0B': '\\x0B', // '\v' is not supported in JScript
-  '"': '\\"',
-  '\'': '\\\'',
-  '\\': '\\\\'
-};
-
-
-/**
- * Encloses a string in double quotes and escapes characters so that the
- * string is a valid JS string.
- * @param {string} s The string to quote.
- * @return {string} A copy of {@code s} surrounded by double quotes.
- */
-goog.string.quote = function(s) {
-  s = String(s);
-  if (s.quote) {
-    return s.quote();
-  } else {
-    var sb = ['"'];
-    for (var i = 0; i < s.length; i++) {
-      sb[i + 1] = goog.string.escapeChar(s.charAt(i));
-    }
-    sb.push('"');
-    return sb.join('');
-  }
-};
-
-
-/**
- * Takes a character and returns the escaped string for that character. For
- * example escapeChar(String.fromCharCode(15)) -> "\\x0E".
- * @param {string} c The character to escape.
- * @return {string} An escaped string representing {@code c}.
- */
-goog.string.escapeChar = function(c) {
-  if (c in goog.string.jsEscapeCache_) {
-    return goog.string.jsEscapeCache_[c];
-  }
-  var rv = c;
-  var cc = c.charCodeAt(0);
-  if (cc > 31 && cc < 127) {
-    rv = c;
-  } else {
-    // tab is 9 but handled above
-    if (cc < 256) {
-      rv = '\\x';
-      if (cc < 16 || cc > 256) {
-        rv += '0';
-      }
-    } else {
-      rv = '\\u';
-      if (cc < 4096) { // \u1000
-        rv += '0';
-      }
-    }
-    rv += cc.toString(16).toUpperCase();
-  }
-
-  return goog.string.jsEscapeCache_[c] = rv;
-};
-
-
-/**
- * Takes a string and creates a map (Object) in which the keys are the
- * characters in the string. The value for the key is set to true. You can
- * then use goog.object.map or goog.array.map to change the values.
- * @param {string} s The string to build the map from.
- * @return {Object} The map of characters used.
- */
-// TODO: It seems like we should have a generic goog.array.toMap. But do
-//            we want a dependency on goog.array in goog.string?
-goog.string.toMap = function(s) {
-  var rv = {};
-  for (var i = 0; i < s.length; i++) {
-    rv[s.charAt(i)] = true;
-  }
-  return rv;
-};
-
-
-/**
- * Checks whether a string contains a given character.
- * @param {string} s The string to test.
- * @param {string} ss The substring to test for.
- * @return {boolean} True if {@code s} contains {@code ss}.
- */
-goog.string.contains = function(s, ss) {
-  return s.indexOf(ss) != -1;
-};
-
-
-/**
- * Removes a substring of a specified length at a specific
- * index in a string.
- * @param {string} s The base string from which to remove.
- * @param {number} index The index at which to remove the substring.
- * @param {number} stringLength The length of the substring to remove.
- * @return {string} A copy of {@code s} with the substring removed or the full
- *     string if nothing is removed or the input is invalid.
- */
-goog.string.removeAt = function(s, index, stringLength) {
-  var resultStr = s;
-  // If the index is greater or equal to 0 then remove substring
-  if (index >= 0 && index < s.length && stringLength > 0) {
-    resultStr = s.substr(0, index) +
-        s.substr(index + stringLength, s.length - index - stringLength);
-  }
-  return resultStr;
-};
-
-
-/**
- *  Removes the first occurrence of a substring from a string.
- *  @param {string} s The base string from which to remove.
- *  @param {string} ss The string to remove.
- *  @return {string} A copy of {@code s} with {@code ss} removed or the full
- *      string if nothing is removed.
- */
-goog.string.remove = function(s, ss) {
-  var re = new RegExp(goog.string.regExpEscape(ss), '');
-  return s.replace(re, '');
-};
-
-
-/**
- *  Removes all occurrences of a substring from a string.
- *  @param {string} s The base string from which to remove.
- *  @param {string} ss The string to remove.
- *  @return {string} A copy of {@code s} with {@code ss} removed or the full
- *      string if nothing is removed.
- */
-goog.string.removeAll = function(s, ss) {
-  var re = new RegExp(goog.string.regExpEscape(ss), 'g');
-  return s.replace(re, '');
-};
-
-
-/**
- * Escapes characters in the string that are not safe to use in a RegExp.
- * @param {*} s The string to escape. If not a string, it will be casted
- *     to one.
- * @return {string} A RegExp safe, escaped copy of {@code s}.
- */
-goog.string.regExpEscape = function(s) {
-  return String(s).replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, '\\$1').
-                   replace(/\x08/g, '\\x08');
-};
-
-
-/**
- * Repeats a string n times.
- * @param {string} string The string to repeat.
- * @param {number} length The number of times to repeat.
- * @return {string} A string containing {@code length} repetitions of
- *     {@code string}.
- */
-goog.string.repeat = function(string, length) {
-  return new Array(length + 1).join(string);
-};
-
-
-/**
- * Pads number to given length and optionally rounds it to a given precision.
- * For example:
- * <pre>padNumber(1.25, 2, 3) -> '01.250'
- * padNumber(1.25, 2) -> '01.25'
- * padNumber(1.25, 2, 1) -> '01.3'
- * padNumber(1.25, 0) -> '1.25'</pre>
- *
- * @param {number} num The number to pad.
- * @param {number} length The desired length.
- * @param {number=} opt_precision The desired precision.
- * @return {string} {@code num} as a string with the given options.
- */
-goog.string.padNumber = function(num, length, opt_precision) {
-  var s = goog.isDef(opt_precision) ? num.toFixed(opt_precision) : String(num);
-  var index = s.indexOf('.');
-  if (index == -1) {
-    index = s.length;
-  }
-  return goog.string.repeat('0', Math.max(0, length - index)) + s;
-};
-
-
-/**
- * Returns a string representation of the given object, with
- * null and undefined being returned as the empty string.
- *
- * @param {*} obj The object to convert.
- * @return {string} A string representation of the {@code obj}.
- */
-goog.string.makeSafe = function(obj) {
-  return obj == null ? '' : String(obj);
-};
-
-
-/**
- * Concatenates string expressions. This is useful
- * since some browsers are very inefficient when it comes to using plus to
- * concat strings. Be careful when using null and undefined here since
- * these will not be included in the result. If you need to represent these
- * be sure to cast the argument to a String first.
- * For example:
- * <pre>buildString('a', 'b', 'c', 'd') -> 'abcd'
- * buildString(null, undefined) -> ''
- * </pre>
- * @param {...*} var_args A list of strings to concatenate. If not a string,
- *     it will be casted to one.
- * @return {string} The concatenation of {@code var_args}.
- */
-goog.string.buildString = function(var_args) {
-  return Array.prototype.join.call(arguments, '');
-};
-
-
-/**
- * Returns a string with at least 64-bits of randomness.
- *
- * Doesn't trust Javascript's random function entirely. Uses a combination of
- * random and current timestamp, and then encodes the string in base-36 to
- * make it shorter.
- *
- * @return {string} A random string, e.g. sn1s7vb4gcic.
- */
-goog.string.getRandomString = function() {
-  return Math.floor(Math.random() * 2147483648).toString(36) +
-         (Math.floor(Math.random() * 2147483648) ^ goog.now()).toString(36);
-};
-
-
-/**
- * Compares two version numbers.
- *
- * @param {string|number} version1 Version of first item.
- * @param {string|number} version2 Version of second item.
- *
- * @return {number}  1 if {@code version1} is higher.
- *                   0 if arguments are equal.
- *                  -1 if {@code version2} is higher.
- */
-goog.string.compareVersions = function(version1, version2) {
-  var order = 0;
-  // Trim leading and trailing whitespace and split the versions into
-  // subversions.
-  var v1Subs = goog.string.trim(String(version1)).split('.');
-  var v2Subs = goog.string.trim(String(version2)).split('.');
-  var subCount = Math.max(v1Subs.length, v2Subs.length);
-
-  // Iterate over the subversions, as long as they appear to be equivalent.
-  for (var subIdx = 0; order == 0 && subIdx < subCount; subIdx++) {
-    var v1Sub = v1Subs[subIdx] || '';
-    var v2Sub = v2Subs[subIdx] || '';
-
-    // Split the subversions into pairs of numbers and qualifiers (like 'b').
-    // Two different RegExp objects are needed because they are both using
-    // the 'g' flag.
-    var v1CompParser = new RegExp('(\\d*)(\\D*)', 'g');
-    var v2CompParser = new RegExp('(\\d*)(\\D*)', 'g');
-    do {
-      var v1Comp = v1CompParser.exec(v1Sub) || ['', '', ''];
-      var v2Comp = v2CompParser.exec(v2Sub) || ['', '', ''];
-      // Break if there are no more matches.
-      if (v1Comp[0].length == 0 && v2Comp[0].length == 0) {
-        break;
-      }
-
-      // Parse the numeric part of the subversion. A missing number is
-      // equivalent to 0.
-      var v1CompNum = v1Comp[1].length == 0 ? 0 : parseInt(v1Comp[1], 10);
-      var v2CompNum = v2Comp[1].length == 0 ? 0 : parseInt(v2Comp[1], 10);
-
-      // Compare the subversion components. The number has the highest
-      // precedence. Next, if the numbers are equal, a subversion without any
-      // qualifier is always higher than a subversion with any qualifier. Next,
-      // the qualifiers are compared as strings.
-      order = goog.string.compareElements_(v1CompNum, v2CompNum) ||
-          goog.string.compareElements_(v1Comp[2].length == 0,
-              v2Comp[2].length == 0) ||
-          goog.string.compareElements_(v1Comp[2], v2Comp[2]);
-    // Stop as soon as an inequality is discovered.
-    } while (order == 0);
-  }
-
-  return order;
-};
-
-
-/**
- * Compares elements of a version number.
- *
- * @param {string|number|boolean} left An element from a version number.
- * @param {string|number|boolean} right An element from a version number.
- *
- * @return {number}  1 if {@code left} is higher.
- *                   0 if arguments are equal.
- *                  -1 if {@code right} is higher.
- * @private
- */
-goog.string.compareElements_ = function(left, right) {
-  if (left < right) {
-    return -1;
-  } else if (left > right) {
-    return 1;
-  }
-  return 0;
-};
-
-
-/**
- * Maximum value of #goog.string.hashCode, exclusive. 2^32.
- * @type {number}
- * @private
- */
-goog.string.HASHCODE_MAX_ = 0x100000000;
-
-
-/**
- * String hash function similar to java.lang.String.hashCode().
- * The hash code for a string is computed as
- * s[0] * 31 ^ (n - 1) + s[1] * 31 ^ (n - 2) + ... + s[n - 1],
- * where s[i] is the ith character of the string and n is the length of
- * the string. We mod the result to make it between 0 (inclusive) and 2^32
- * (exclusive).
- * @param {string} str A string.
- * @return {number} Hash value for {@code str}, between 0 (inclusive) and 2^32
- *  (exclusive). The empty string returns 0.
- */
-goog.string.hashCode = function(str) {
-  var result = 0;
-  for (var i = 0; i < str.length; ++i) {
-    result = 31 * result + str.charCodeAt(i);
-    // Normalize to 4 byte range, 0 ... 2^32.
-    result %= goog.string.HASHCODE_MAX_;
-  }
-  return result;
-};
-
-
-/**
- * The most recent globally unique ID.
- * @type {number}
- * @private
- */
-goog.string.uniqueStringCounter_ = goog.now();
-
-
-/**
- * Generates and returns a unique string based on the current date so strings
- * remain unique between sessions.  This is useful, for example, to create
- * unique IDs for DOM elements.
- * @return {string} A unique id.
- */
-goog.string.createUniqueString = function() {
-  return 'goog_' + goog.string.uniqueStringCounter_++;
-};
-
-
-/**
- * Converts the supplied string to a number, which may be Ininity or NaN.
- * This function strips whitespace: (toNumber(' 123') === 123)
- * This function accepts scientific notation: (toNumber('1e1') === 10)
- *
- * This is better than Javascript's built-in conversions because, sadly:
- *     (Number(' ') === 0) and (parseFloat('123a') === 123)
- *
- * @param {string} str The string to convert.
- * @return {number} The number the supplied string represents, or NaN.
- */
-goog.string.toNumber = function(str) {
-  var num = Number(str);
-  if (num == 0 && goog.string.isEmpty(str)) {
-    return NaN;
-  }
-  return num;
-};
-
-// Input 8
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// Copyright 2006 Google Inc. All Rights Reserved.
 
 /**
  * @fileoverview Rendering engine detection.
  * @see <a href="http://www.useragentstring.com/">User agent strings</a>
  * For information on the browser brand (such as Safari versus Chrome), see
  * goog.userAgent.product.
+*
+*
  * @see ../demos/useragent.html
  */
 
@@ -4937,7 +5474,7 @@ goog.userAgent.MOBILE = goog.userAgent.ASSUME_MOBILE_WEBKIT ||
  * Used while transitioning code to use WEBKIT instead.
  * @type {boolean}
  * @deprecated Use {@link goog.userAgent.product.SAFARI} instead.
- * TODO: Delete this from goog.userAgent.
+ * TODO(nicksantos): Delete this from goog.userAgent.
  */
 goog.userAgent.SAFARI = goog.userAgent.WEBKIT;
 
@@ -5167,20 +5704,20 @@ goog.userAgent.isVersion = function(version) {
           goog.string.compareVersions(goog.userAgent.VERSION, version) >= 0);
 };
 
-// Input 9
+// Input 11
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Copyright 2006 Google Inc. All Rights Reserved.
 
 /**
  * @fileoverview Utilities for manipulating the browser's Document Object Model
@@ -5190,10 +5727,12 @@ goog.userAgent.isVersion = function(version) {
  * to a different document object.  This is useful if you are working with
  * frames or multiple windows.
  *
+*
+*
  */
 
 
-// TODO: Rename/refactor getTextContent and getRawTextContent. The problem
+// TODO(user): Rename/refactor getTextContent and getRawTextContent. The problem
 // is that getTextContent should mimic the DOM3 textContent. We should add a
 // getInnerText (or getText) which tries to return the visible text, innerText.
 
@@ -5263,9 +5802,9 @@ goog.dom.NodeType = {
  */
 goog.dom.getDomHelper = function(opt_element) {
   return opt_element ?
-    new goog.dom.DomHelper(goog.dom.getOwnerDocument(opt_element)) :
-    (goog.dom.defaultDomHelper_ ||
-        (goog.dom.defaultDomHelper_ = new goog.dom.DomHelper()));
+      new goog.dom.DomHelper(goog.dom.getOwnerDocument(opt_element)) :
+      (goog.dom.defaultDomHelper_ ||
+          (goog.dom.defaultDomHelper_ = new goog.dom.DomHelper()));
 };
 
 
@@ -5318,11 +5857,11 @@ goog.dom.$ = goog.dom.getElement;
  * need is particular tags belonging to a single class, this function
  * is fast and sleek.
  *
- * @see goog.dom.query
+ * @see {goog.dom.query}
  *
  * @param {?string=} opt_tag Element tag name.
  * @param {?string=} opt_class Optional class name.
- * @param {Element=} opt_el Optional element to look in.
+ * @param {Document|Element=} opt_el Optional element to look in.
  * @return { {length: number} } Array-like list of elements (only a length
  *     property and numerical indices are guaranteed to exist).
  */
@@ -5333,11 +5872,66 @@ goog.dom.getElementsByTagNameAndClass = function(opt_tag, opt_class, opt_el) {
 
 
 /**
+ * Returns an array of all the elements with the provided className.
+ * @see {goog.dom.query}
+ * @param {!string} className the name of the class to look for.
+ * @param {Document|Element=} opt_el Optional element to look in.
+ * @return { {length: number} } The items found with the class name provided.
+ */
+goog.dom.getElementsByClass = function(className, opt_el) {
+  var parent = opt_el || document;
+  if (goog.dom.canUseQuerySelector_(parent)) {
+    return parent.querySelectorAll('.' + className);
+  } else if (parent.getElementsByClassName) {
+    return parent.getElementsByClassName(className);
+  }
+  return goog.dom.getElementsByTagNameAndClass_(
+      document, '*', className, opt_el);
+};
+
+
+/**
+ * Returns the first element with the provided className.
+ * @see {goog.dom.query}
+ * @param {!string} className the name of the class to look for.
+ * @param {Element|Document=} opt_el Optional element to look in.
+ * @return {Element} The first item with the class name provided.
+ */
+goog.dom.getElementByClass = function(className, opt_el) {
+  var parent = opt_el || document;
+  var retVal = null;
+  if (goog.dom.canUseQuerySelector_(parent)) {
+    retVal = parent.querySelector('.' + className);
+  } else {
+    retVal = goog.dom.getElementsByClass(className, opt_el)[0];
+  }
+  return retVal || null;
+};
+
+
+/**
+ * Prefer the standardized (http://www.w3.org/TR/selectors-api/), native and
+ * fast W3C Selectors API. However, the version of WebKit that shipped with
+ * Safari 3.1 and Chrome has a bug where it will not correctly match mixed-
+ * case class name selectors in quirks mode.
+ * @param {!Element|Document} parent The parent document object.
+ * @return {boolean} whether or not we can use parent.querySelector* APIs.
+ * @private
+ */
+goog.dom.canUseQuerySelector_ = function(parent) {
+  return parent.querySelectorAll &&
+         parent.querySelector &&
+         (!goog.userAgent.WEBKIT || goog.dom.isCss1CompatMode_(document) ||
+          goog.userAgent.isVersion('528'));
+};
+
+
+/**
  * Helper for {@code getElementsByTagNameAndClass}.
  * @param {!Document} doc The document to get the elements in.
  * @param {?string=} opt_tag Element tag name.
  * @param {?string=} opt_class Optional class name.
- * @param {Element=} opt_el Optional element to look in.
+ * @param {Document|Element=} opt_el Optional element to look in.
  * @return { {length: number} } Array-like list of elements (only a length
  *     property and numerical indices are guaranteed to exist).
  * @private
@@ -5347,14 +5941,8 @@ goog.dom.getElementsByTagNameAndClass_ = function(doc, opt_tag, opt_class,
   var parent = opt_el || doc;
   var tagName = (opt_tag && opt_tag != '*') ? opt_tag.toUpperCase() : '';
 
-  // Prefer the standardized (http://www.w3.org/TR/selectors-api/), native and
-  // fast W3C Selectors API. However, the version of WebKit that shipped with
-  // Safari 3.1 and Chrome has a bug where it will not correctly match mixed-
-  // case class name selectors in quirks mode.
-  if (parent.querySelectorAll &&
-      (tagName || opt_class) &&
-      (!goog.userAgent.WEBKIT || goog.dom.isCss1CompatMode_(doc) ||
-        goog.userAgent.isVersion('528'))) {
+  if (goog.dom.canUseQuerySelector_(parent) &&
+      (tagName || opt_class)) {
     var query = tagName + (opt_class ? '.' + opt_class : '');
     return parent.querySelectorAll(query);
   }
@@ -5526,7 +6114,7 @@ goog.dom.DIRECT_ATTRIBUTE_MAP_ = {
  * @return {!goog.math.Size} Object with values 'width' and 'height'.
  */
 goog.dom.getViewportSize = function(opt_window) {
-  // TODO: This should not take an argument
+  // TODO(user): This should not take an argument
   return goog.dom.getViewportSize_(opt_window || window);
 };
 
@@ -5542,7 +6130,7 @@ goog.dom.getViewportSize_ = function(win) {
 
   if (goog.userAgent.WEBKIT && !goog.userAgent.isVersion('500') &&
       !goog.userAgent.MOBILE) {
-    // TODO: Sometimes we get something that isn't a valid window
+    // TODO(user): Sometimes we get something that isn't a valid window
     // object. In this case we just revert to the current window. We need to
     // figure out when this happens and find a real fix for it.
     // See the comments on goog.dom.getWindow.
@@ -5560,12 +6148,13 @@ goog.dom.getViewportSize_ = function(win) {
     return new goog.math.Size(win.innerWidth, innerHeight);
   }
 
-  var el = goog.dom.isCss1CompatMode_(doc) &&
-      // Older versions of Opera used to read from document.body, but this
-      // changed with 9.5
-      (!goog.userAgent.OPERA ||
-          goog.userAgent.OPERA && goog.userAgent.isVersion('9.50')) ?
-              doc.documentElement : doc.body;
+  var readsFromDocumentElement = goog.dom.isCss1CompatMode_(doc);
+  if (goog.userAgent.OPERA && !goog.userAgent.isVersion('9.50')) {
+    // Older versions of Opera used to read from document.body, but this
+    // changed with 9.5.
+    readsFromDocumentElement = false;
+  }
+  var el = readsFromDocumentElement ? doc.documentElement : doc.body;
 
   return new goog.math.Size(el.clientWidth, el.clientHeight);
 };
@@ -5591,7 +6180,7 @@ goog.dom.getDocumentHeight = function() {
  * @return {number} The height of the document of the given window.
  */
 goog.dom.getDocumentHeight_ = function(win) {
-  // NOTE: This method will return the window size rather than the document
+  // NOTE(user): This method will return the window size rather than the document
   // size in webkit quirks mode.
   var doc = win.document;
   var height = 0;
@@ -5718,7 +6307,7 @@ goog.dom.getDocumentScrollElement_ = function(doc) {
  * @return {Window} The window associated with the given document.
  */
 goog.dom.getWindow = function(opt_doc) {
-  // TODO: This should not take an argument.
+  // TODO(user): This should not take an argument.
   return opt_doc ? goog.dom.getWindow_(opt_doc) : window;
 };
 
@@ -5745,9 +6334,10 @@ goog.dom.getWindow_ = function(doc) {
  * would return a div with two child paragraphs
  *
  * @param {string} tagName Tag to create.
- * @param {Object|string=} opt_attributes If object, then a map of name-value
- *     pairs for attributes. If a string, then this is the className of the new
- *     element.
+ * @param {Object|Array.<string>|string=} opt_attributes If object, then a map
+ *     of name-value pairs for attributes. If a string, then this is the
+ *     className of the new element. If an array, the elements will be joined
+ *     together as the className of the new element.
  * @param {...Object|string|Array|NodeList} var_args Further DOM nodes or
  *     strings for text nodes. If one of the var_args is an array or NodeList,i
  *     its elements will be added as childNodes instead.
@@ -5760,7 +6350,7 @@ goog.dom.createDom = function(tagName, opt_attributes, var_args) {
 /**
  * Helper for {@code createDom}.
  * @param {!Document} doc The document to create the DOM in.
- * @param {Arguments} args Argument object passed from the callers. See
+ * @param {!Arguments} args Argument object passed from the callers. See
  *     {@code goog.dom.createDom} for details.
  * @return {!Element} Reference to a DOM node.
  * @private
@@ -5781,8 +6371,11 @@ goog.dom.createDom_ = function(doc, args) {
     if (attributes.type) {
       tagNameArr.push(' type="', goog.string.htmlEscape(attributes.type),
                       '"');
-      // Create copy of attribute map to remove 'type' without mutating argument
-      attributes = goog.cloneObject(attributes);
+
+      // Clone attributes map to remove 'type' without mutating the input.
+      var clone = {};
+      goog.object.extend(clone, attributes);
+      attributes = clone;
       delete attributes.type;
     }
     tagNameArr.push('>');
@@ -5794,37 +6387,53 @@ goog.dom.createDom_ = function(doc, args) {
   if (attributes) {
     if (goog.isString(attributes)) {
       element.className = attributes;
+    } else if (goog.isArray(attributes)) {
+      goog.dom.classes.add.apply(null, [element].concat(attributes));
     } else {
       goog.dom.setProperties(element, attributes);
     }
   }
 
   if (args.length > 2) {
-    var childHandler = function(child) {
-      // TODO: More coercion, ala MochiKit?
-      if (child) {
-        element.appendChild(goog.isString(child) ?
-            doc.createTextNode(child) : child);
-      }
-    };
-
-    for (var i = 2; i < args.length; i++) {
-      var arg = args[i];
-      // TODO: Fix isArrayLike to return false for a text node.
-      if (goog.isArrayLike(arg) && !goog.dom.isNodeLike(arg)) {
-        // If the argument is a node list, not a real array, use a clone,
-        // because forEach can't be used to mutate a NodeList.
-        goog.array.forEach(goog.dom.isNodeList(arg) ?
-            goog.array.clone(arg) : arg,
-            childHandler);
-      } else {
-        childHandler(arg);
-      }
-    }
+    goog.dom.append_(doc, element, args, 2);
   }
 
   return element;
 };
+
+
+/**
+ * Appends a node with text or other nodes.
+ * @param {!Document} doc The document to create new nodes in.
+ * @param {!Node} parent The node to append nodes to.
+ * @param {!Arguments} args The values to add. See {@code goog.dom.append}.
+ * @param {number} startIndex The index of the array to start from.
+ * @private
+ */
+goog.dom.append_ = function(doc, parent, args, startIndex) {
+  function childHandler(child) {
+    // TODO(user): More coercion, ala MochiKit?
+    if (child) {
+      parent.appendChild(goog.isString(child) ?
+          doc.createTextNode(child) : child);
+    }
+  }
+
+  for (var i = startIndex; i < args.length; i++) {
+    var arg = args[i];
+    // TODO(user): Fix isArrayLike to return false for a text node.
+    if (goog.isArrayLike(arg) && !goog.dom.isNodeLike(arg)) {
+      // If the argument is a node list, not a real array, use a clone,
+      // because forEach can't be used to mutate a NodeList.
+      goog.array.forEach(goog.dom.isNodeList(arg) ?
+          goog.array.clone(arg) : arg,
+          childHandler);
+    } else {
+      childHandler(arg);
+    }
+  }
+};
+
 
 /**
  * Alias for {@code createDom}.
@@ -6017,6 +6626,19 @@ goog.dom.canHaveChildren = function(node) {
  */
 goog.dom.appendChild = function(parent, child) {
   parent.appendChild(child);
+};
+
+
+/**
+ * Appends a node with text or other nodes.
+ * @param {!Node} parent The node to append nodes to.
+ * @param {...goog.dom.Appendable} var_args The things to append to the node.
+ *     If this is a Node it is appended as is.
+ *     If this is a string then a text node is appended.
+ *     If this is an array like object then fields 0 to length - 1 are appended.
+ */
+goog.dom.append = function(parent, var_args) {
+  goog.dom.append_(goog.dom.getOwnerDocument(parent), parent, arguments, 1);
 };
 
 
@@ -6423,7 +7045,7 @@ goog.dom.findCommonAncestor = function(var_args) {
  * @return {!Document} The document owning the node.
  */
 goog.dom.getOwnerDocument = function(node) {
-  // TODO: Remove IE5 code.
+  // TODO(user): Remove IE5 code.
   // IE5 uses document instead of ownerDocument
   return /** @type {!Document} */ (
       node.nodeType == goog.dom.NodeType.DOCUMENT ? node :
@@ -6645,7 +7267,7 @@ goog.dom.setFocusableTabIndex = function(element, enable) {
  */
 goog.dom.getTextContent = function(node) {
   var textContent;
-  // NOTE: Both Opera and Safara 3 supports innerText but they include
+  // Note(user): Both Opera and Safara 3 supports innerText but they include
   // text nodes in script tags. So we revert to use a user agent test here.
   if (goog.userAgent.IE && ('innerText' in node)) {
     textContent = goog.string.canonicalizeNewlines(node.innerText);
@@ -6799,7 +7421,7 @@ goog.dom.getNodeAtOffset = function(parent, offset, opt_result) {
  * @return {boolean} Whether the object is a NodeList.
  */
 goog.dom.isNodeList = function(val) {
-  // TODO: Now the isNodeList is part of goog.dom we can use
+  // TODO(user): Now the isNodeList is part of goog.dom we can use
   // goog.userAgent to make this simpler.
   // A NodeList must have a length property of type 'number' on all platforms.
   if (val && typeof val.length == 'number') {
@@ -6951,7 +7573,7 @@ goog.dom.DomHelper.prototype.$ = goog.dom.DomHelper.prototype.getElement;
  *
  * @param {?string=} opt_tag Element tag name or * for all tags.
  * @param {?string=} opt_class Optional class name.
- * @param {Element=} opt_el Optional element to look in.
+ * @param {Document|Element=} opt_el Optional element to look in.
  * @return { {length: number} } Array-like list of elements (only a length
  *     property and numerical indices are guaranteed to exist).
  */
@@ -6960,6 +7582,32 @@ goog.dom.DomHelper.prototype.getElementsByTagNameAndClass = function(opt_tag,
                                                                      opt_el) {
   return goog.dom.getElementsByTagNameAndClass_(this.document_, opt_tag,
                                                 opt_class, opt_el);
+};
+
+
+/**
+ * Returns an array of all the elements with the provided className.
+ * @see {goog.dom.query}
+ * @param {!string} className the name of the class to look for.
+ * @param {Element|Document=} opt_el Optional element to look in.
+ * @return { {length: number} } The items found with the class name provided.
+ */
+goog.dom.DomHelper.prototype.getElementsByClass = function(className, opt_el) {
+  var doc = opt_el || this.document_;
+  return goog.dom.getElementsByClass(className, doc);
+};
+
+
+/**
+ * Returns the first element we find matching the provided class name.
+ * @see {goog.dom.query}
+ * @param {!string} className the name of the class to look for.
+ * @param {Element|Document=} opt_el Optional element to look in.
+ * @return {Element} The first item found with the class name provided.
+ */
+goog.dom.DomHelper.prototype.getElementByClass = function(className, opt_el) {
+  var doc = opt_el || this.document_;
+  return goog.dom.getElementByClass(className, doc);
 };
 
 
@@ -6993,7 +7641,7 @@ goog.dom.DomHelper.prototype.setProperties = goog.dom.setProperties;
  * @return {!goog.math.Size} Object with values 'width' and 'height'.
  */
 goog.dom.DomHelper.prototype.getViewportSize = function(opt_window) {
-  // TODO: This should not take an argument. That breaks the rule of a
+  // TODO(user): This should not take an argument. That breaks the rule of a
   // a DomHelper representing a single frame/window/document.
   return goog.dom.getViewportSize(opt_window || this.getWindow());
 };
@@ -7007,6 +7655,13 @@ goog.dom.DomHelper.prototype.getViewportSize = function(opt_window) {
 goog.dom.DomHelper.prototype.getDocumentHeight = function() {
   return goog.dom.getDocumentHeight_(this.getWindow());
 };
+
+
+/**
+ * Typedef for use with goog.dom.createDom and goog.dom.append.
+ * @typedef {Object|string|Array|NodeList}
+ */
+goog.dom.Appendable;
 
 
 /**
@@ -7028,7 +7683,7 @@ goog.dom.DomHelper.prototype.getDocumentHeight = function() {
  * @param {Object|string=} opt_attributes If object, then a map of name-value
  *     pairs for attributes. If a string, then this is the className of the new
  *     element.
- * @param {...Object|string|Array|NodeList} var_args Further DOM nodes or
+ * @param {...goog.dom.Appendable} var_args Further DOM nodes or
  *     strings for text nodes. If one of the var_args is an array or
  *     NodeList, its elements will be added as childNodes instead.
  * @return {!Element} Reference to a DOM node.
@@ -7046,9 +7701,9 @@ goog.dom.DomHelper.prototype.createDom = function(tagName,
  * @param {Object|string=} opt_attributes If object, then a map of name-value
  *     pairs for attributes. If a string, then this is the className of the new
  *     element.
- * @param {...Object|string|Array|NodeList} var_args Further DOM nodes
- *     or strings for text nodes.  If one of the var_args is an array, its
- *     children will be added as childNodes instead.
+ * @param {...goog.dom.Appendable} var_args Further DOM nodes or strings for
+ *     text nodes.  If one of the var_args is an array, its children will be
+ *     added as childNodes instead.
  * @return {!Element} Reference to a DOM node.
  * @deprecated Use {@link goog.dom.DomHelper.prototype.createDom} instead.
  */
@@ -7156,6 +7811,17 @@ goog.dom.DomHelper.prototype.getDocumentScroll = function() {
  * @param {Node} child Child.
  */
 goog.dom.DomHelper.prototype.appendChild = goog.dom.appendChild;
+
+
+/**
+ * Appends a node with text or other nodes.
+ * @param {!Node} parent The node to append nodes to.
+ * @param {...goog.dom.Appendable} var_args The things to append to the node.
+ *     If this is a Node it is appended as is.
+ *     If this is a string then a text node is appended.
+ *     If this is an array like object then fields 0 to length - 1 are appended.
+ */
+goog.dom.DomHelper.prototype.append = goog.dom.append;
 
 
 /**
@@ -7408,26 +8074,27 @@ goog.dom.DomHelper.prototype.getAncestorByTagNameAndClass =
  */
 goog.dom.DomHelper.prototype.getAncestor = goog.dom.getAncestor;
 
-// Input 10
+// Input 12
+// Copyright 2008 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Copyright 2008 Google Inc. All Rights Reserved.
 
 /**
  * @fileoverview File which defines dummy object to work around undefined
  * properties compiler warning for weak dependencies on
  * {@link goog.debug.ErrorHandler#protectEntryPoint}.
  *
+*
  */
 
 goog.provide('goog.debug.errorHandlerWeakDep');
@@ -7447,24 +8114,25 @@ goog.debug.errorHandlerWeakDep = {
   protectEntryPoint: function(fn, opt_tracers) { return fn; }
 };
 
-// Input 11
+// Input 13
+// Copyright 2005 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2005 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Implements the disposable interface. The dispose method is used
  * to clean up references and resources.
+*
  */
 
 
@@ -7557,24 +8225,25 @@ goog.dispose = function(obj) {
   }
 };
 
-// Input 12
+// Input 14
+// Copyright 2005 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2005 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview A base class for event objects.
  *
+*
  */
 
 
@@ -7589,7 +8258,8 @@ goog.require('goog.Disposable');
  *
  * @param {string} type Event Type.
  * @param {Object=} opt_target Reference to the object that is the target of
- *     this event.
+ *     this event. It has to implement the {@code EventTarget} interface
+ *     declared at {@link http://developer.mozilla.org/en/DOM/EventTarget}.
  * @constructor
  * @extends {goog.Disposable}
  */
@@ -7628,7 +8298,8 @@ goog.events.Event.prototype.disposeInternal = function() {
 /**
  * Whether to cancel the event in internal capture/bubble processing for IE.
  * @type {boolean}
- * @private
+ * @suppress {underscore} Technically public, but referencing this outside
+ *     this package is strongly discouraged.
  */
 goog.events.Event.prototype.propagationStopped_ = false;
 
@@ -7636,7 +8307,8 @@ goog.events.Event.prototype.propagationStopped_ = false;
 /**
  * Return value for in internal capture/bubble processing for IE.
  * @type {boolean}
- * @private
+ * @suppress {underscore} Technically public, but referencing this outside
+ *     this package is strongly discouraged.
  */
 goog.events.Event.prototype.returnValue_ = true;
 
@@ -7678,20 +8350,20 @@ goog.events.Event.preventDefault = function(e) {
   e.preventDefault();
 };
 
-// Input 13
+// Input 15
+// Copyright 2005 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Copyright 2005 Google Inc. All Rights Reserved.
 
 /**
  * @fileoverview A patched, standardized event object for browser events.
@@ -7720,6 +8392,8 @@ goog.events.Event.preventDefault = function(e) {
  * key and character code use {@link goog.events.KeyHandler}.
  * </pre>
  *
+*
+*
  */
 
 goog.provide('goog.events.BrowserEvent');
@@ -7926,7 +8600,7 @@ goog.events.BrowserEvent.prototype.init = function(e, opt_currentTarget) {
         relatedTarget = null;
       }
     }
-    // TODO: Use goog.events.EventType when it has been refactored into its
+    // TODO(user): Use goog.events.EventType when it has been refactored into its
     // own file.
   } else if (type == 'mouseover') {
     relatedTarget = e.fromElement;
@@ -7991,7 +8665,7 @@ goog.events.BrowserEvent.prototype.isButton = function(button) {
  * @inheritDoc
  */
 goog.events.BrowserEvent.prototype.stopPropagation = function() {
-  this.propagationStopped_ = true;
+  goog.events.BrowserEvent.superClass_.stopPropagation.call(this);
   if (this.event_.stopPropagation) {
     this.event_.stopPropagation();
   } else {
@@ -8007,14 +8681,14 @@ goog.events.BrowserEvent.prototype.stopPropagation = function() {
  * @private
  */
 goog.events.BrowserEvent.IE7_SET_KEY_CODE_TO_PREVENT_DEFAULT_ =
-    goog.userAgent.IE && !goog.userAgent.isVersion('8')
+    goog.userAgent.IE && !goog.userAgent.isVersion('8');
 
 
 /**
  * @inheritDoc
  */
 goog.events.BrowserEvent.prototype.preventDefault = function() {
-  this.returnValue_ = false;
+  goog.events.BrowserEvent.superClass_.preventDefault.call(this);
   var be = this.event_;
   if (!be.preventDefault) {
     be.returnValue = false;
@@ -8065,24 +8739,25 @@ goog.events.BrowserEvent.prototype.disposeInternal = function() {
   this.relatedTarget = null;
 };
 
-// Input 14
+// Input 16
+// Copyright 2009 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2009 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Definition of the goog.events.EventWrapper interface.
  *
+*
  */
 
 goog.provide('goog.events.EventWrapper');
@@ -8133,23 +8808,24 @@ goog.events.EventWrapper.prototype.unlisten = function(src, listener, opt_capt,
     opt_scope, opt_eventHandler) {
 };
 
-// Input 15
+// Input 17
+// Copyright 2005 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2005 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Listener object.
+*
  * @see ../demos/events.html
  */
 
@@ -8292,24 +8968,26 @@ goog.events.Listener.prototype.handleEvent = function(eventObject) {
   return this.listener.handleEvent.call(this.listener, eventObject);
 };
 
-// Input 16
+// Input 18
+// Copyright 2007 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2007 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Datastructure: Pool.
  *
+*
+*
  *
  * A generic class for handling pools of objects that is more efficient than
  * goog.structs.Pool because it doesn't maintain a list of objects that are in
@@ -8341,7 +9019,6 @@ goog.require('goog.Disposable');
  * @param {number} maxCount Maximum number of objects to keep in the free pool.
  * @constructor
  * @extends {goog.Disposable}
- *
  */
 goog.structs.SimplePool = function(initialCount, maxCount) {
   goog.Disposable.call(this);
@@ -8410,7 +9087,7 @@ goog.structs.SimplePool.prototype.setDisposeObjectFn = function(
 /**
  * Gets a new object from the the pool, if there is one available, otherwise
  * returns null.
- * @return {Object} An object from the pool or a new one if necessary.
+ * @return {*} An object from the pool or a new one if necessary.
  */
 goog.structs.SimplePool.prototype.getObject = function() {
   if (this.freeQueue_.length) {
@@ -8423,7 +9100,7 @@ goog.structs.SimplePool.prototype.getObject = function() {
 /**
  * Releases the space in the pool held by a given object -- i.e., remove it from
  * the pool and frees up its space.
- * @param {Object} obj The object to release.
+ * @param {*} obj The object to release.
  */
 goog.structs.SimplePool.prototype.releaseObject = function(obj) {
   if (this.freeQueue_.length < this.maxCount_) {
@@ -8452,7 +9129,7 @@ goog.structs.SimplePool.prototype.createInitial_ = function(initialCount) {
 /**
  * Should be overriden by sub-classes to return an instance of the object type
  * that is expected in the pool.
- * @return {Object} The created object.
+ * @return {*} The created object.
  */
 goog.structs.SimplePool.prototype.createObject = function() {
   if (this.createObjectFn_) {
@@ -8467,12 +9144,12 @@ goog.structs.SimplePool.prototype.createObject = function() {
  * Should be overriden to dispose of an object. Default implementation is to
  * remove all of the object's members, which should render it useless. Calls the
  *  object's dispose method, if available.
- * @param {Object} obj The object to dispose.
+ * @param {*} obj The object to dispose.
  */
 goog.structs.SimplePool.prototype.disposeObject = function(obj) {
   if (this.disposeObjectFn_) {
     this.disposeObjectFn_(obj);
-  } else {
+  } else if (goog.isObject(obj)) {
     if (goog.isFunction(obj.dispose)) {
       obj.dispose();
     } else {
@@ -8497,24 +9174,25 @@ goog.structs.SimplePool.prototype.disposeInternal = function() {
   delete this.freeQueue_;
 };
 
-// Input 17
+// Input 19
+// Copyright 2007 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2007 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Detection of JScript version.
  *
+*
  */
 
 
@@ -8592,20 +9270,20 @@ goog.userAgent.jscript.isVersion = function(version) {
                                      version) >= 0;
 };
 
-// Input 18
+// Input 20
+// Copyright 2005 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Copyright 2005 Google Inc. All Rights Reserved
 
 /**
  * @fileoverview Helper object to manage the event system pools. This should not
@@ -8615,6 +9293,8 @@ goog.userAgent.jscript.isVersion = function(version) {
  * JScript 5.6 has some serious issues with GC so we use object pools to reduce
  * the number of object allocations.
  *
+*
+*
  */
 
 goog.provide('goog.events.pools');
@@ -8936,20 +9616,20 @@ goog.events.pools.releaseEvent;
   }
 })();
 
-// Input 19
+// Input 21
+// Copyright 2005 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Copyright 2005 Google Inc. All Rights Reserved.
 
 /**
  * @fileoverview Event Manager.
@@ -8973,7 +9653,10 @@ goog.events.pools.releaseEvent;
  * goog.events.removeAll();
  * </pre>
  *
+*
+*
  *                                            in IE and event object patching]
+*
  *
  * @supported IE6+, FF1.5+, WebKit, Opera.
  * @see ../demos/events.html
@@ -8983,13 +9666,13 @@ goog.events.pools.releaseEvent;
 
 
 // This uses 3 lookup tables/trees.
-// listenerTree_ is a tree of type -> capture -> src hash code -> [Listener]
+// listenerTree_ is a tree of type -> capture -> src uid -> [Listener]
 // listeners_ is a map of key -> [Listener]
 //
 // The key is a field of the Listener. The Listener class also has the type,
 // capture and the src so one can always trace back in the tree
 //
-// sources_: src hc -> [Listener]
+// sources_: src uid -> [Listener]
 
 
 goog.provide('goog.events');
@@ -9023,7 +9706,7 @@ goog.events.listenerTree_ = {};
 
 
 /**
- * Lookup for mapping source hash codes to listeners
+ * Lookup for mapping source UIDs to listeners.
  * @private
  * @type {Object}
  */
@@ -9047,6 +9730,7 @@ goog.events.onString_ = 'on';
  */
 goog.events.onStringMap_ = {};
 
+
 /**
  * Separator used to split up the various parts of an event key, to help avoid
  * the possibilities of collisions.
@@ -9054,6 +9738,14 @@ goog.events.onStringMap_ = {};
  * @private
  */
 goog.events.keySeparator_ = '_';
+
+
+/**
+ * Whether the browser natively supports full W3C event propagation.
+ * @type {boolean}
+ * @private
+ */
+goog.events.requiresSyntheticEventPropagation_;
 
 
 /**
@@ -9095,7 +9787,7 @@ goog.events.listen = function(src, type, listener, opt_capt, opt_handler) {
     }
     map = map[capture];
 
-    var srcHashCode = goog.getHashCode(src);
+    var srcUid = goog.getUid(src);
     var listenerArray, listenerObj;
 
     // The remaining_ property is used to be able to short circuit the iteration
@@ -9107,13 +9799,13 @@ goog.events.listen = function(src, type, listener, opt_capt, opt_handler) {
     // guaranteed that we will not skip any event listeners.
     map.remaining_++;
 
-    // Do not use srcHashCode in map here since that will cast the number to a
+    // Do not use srcUid in map here since that will cast the number to a
     // string which will allocate one string object.
-    if (!map[srcHashCode]) {
-      listenerArray = map[srcHashCode] = goog.events.pools.getArray();
+    if (!map[srcUid]) {
+      listenerArray = map[srcUid] = goog.events.pools.getArray();
       map.count_++;
     } else {
-      listenerArray = map[srcHashCode];
+      listenerArray = map[srcUid];
       // Ensure that the listeners do not already contain the current listener
       for (var i = 0; i < listenerArray.length; i++) {
         listenerObj = listenerArray[i];
@@ -9143,10 +9835,10 @@ goog.events.listen = function(src, type, listener, opt_capt, opt_handler) {
     listenerArray.push(listenerObj);
     goog.events.listeners_[key] = listenerObj;
 
-    if (!goog.events.sources_[srcHashCode]) {
-      goog.events.sources_[srcHashCode] = goog.events.pools.getArray();
+    if (!goog.events.sources_[srcUid]) {
+      goog.events.sources_[srcUid] = goog.events.pools.getArray();
     }
-    goog.events.sources_[srcHashCode].push(listenerObj);
+    goog.events.sources_[srcUid].push(listenerObj);
 
 
     // Attach the proxy through the browser's API
@@ -9284,7 +9976,7 @@ goog.events.unlistenByKey = function(key) {
   if (src.removeEventListener) {
     // EventTarget calls unlisten so we need to ensure that the source is not
     // an event target to prevent re-entry.
-    // TODO: What is this goog.global for? Why would anyone listen to
+    // TODO(user): What is this goog.global for? Why would anyone listen to
     // events on the [[Global]] object? Is it supposed to be window? Why would
     // we not want to allow removing event listeners on the window?
     if (src == goog.global || !src.customEvent_) {
@@ -9294,8 +9986,8 @@ goog.events.unlistenByKey = function(key) {
     src.detachEvent(goog.events.getOnString_(type), proxy);
   }
 
-  var srcHashCode = goog.getHashCode(src);
-  var listenerArray = goog.events.listenerTree_[type][capture][srcHashCode];
+  var srcUid = goog.getUid(src);
+  var listenerArray = goog.events.listenerTree_[type][capture][srcUid];
 
   // In a perfect implementation we would decrement the remaining_ field here
   // but then we would need to know if the listener has already been fired or
@@ -9303,17 +9995,17 @@ goog.events.unlistenByKey = function(key) {
   // ancestor chain will need to be traversed as before.
 
   // Remove from sources_
-  if (goog.events.sources_[srcHashCode]) {
-    var sourcesArray = goog.events.sources_[srcHashCode];
+  if (goog.events.sources_[srcUid]) {
+    var sourcesArray = goog.events.sources_[srcUid];
     goog.array.remove(sourcesArray, listener);
     if (sourcesArray.length == 0) {
-      delete goog.events.sources_[srcHashCode];
+      delete goog.events.sources_[srcUid];
     }
   }
 
   listener.removed = true;
   listenerArray.needsCleanup_ = true;
-  goog.events.cleanUp_(type, capture, srcHashCode, listenerArray);
+  goog.events.cleanUp_(type, capture, srcUid, listenerArray);
 
   delete goog.events.listeners_[key];
 
@@ -9344,11 +10036,11 @@ goog.events.unlistenWithWrapper = function(src, wrapper, listener, opt_capt,
  * @param {string} type  The type of the event.
  * @param {boolean} capture Whether to clean up capture phase listeners instead
  *     bubble phase listeners.
- * @param {number} srcHashCode  The hash code of the source.
+ * @param {number} srcUid  The unique ID of the source.
  * @param {Array.<goog.events.Listener>} listenerArray The array being cleaned.
  * @private
  */
-goog.events.cleanUp_ = function(type, capture, srcHashCode, listenerArray) {
+goog.events.cleanUp_ = function(type, capture, srcUid, listenerArray) {
   // The listener array gets locked during the dispatch phase so that removals
   // of listeners during this phase does not screw up the indeces. This method
   // is called after we have removed a listener as well as after the dispatch
@@ -9383,7 +10075,7 @@ goog.events.cleanUp_ = function(type, capture, srcHashCode, listenerArray) {
       // In case the length is now zero we release the object.
       if (newIndex == 0) {
         goog.events.pools.releaseArray(listenerArray);
-        delete goog.events.listenerTree_[type][capture][srcHashCode];
+        delete goog.events.listenerTree_[type][capture][srcUid];
         goog.events.listenerTree_[type][capture].count_--;
 
         if (goog.events.listenerTree_[type][capture].count_ == 0) {
@@ -9424,9 +10116,9 @@ goog.events.removeAll = function(opt_obj, opt_type, opt_capt) {
   opt_capt = !!opt_capt;
 
   if (!noObj) {
-    var srcHashCode = goog.getHashCode(/** @type {Object} */ (opt_obj));
-    if (goog.events.sources_[srcHashCode]) {
-      var sourcesArray = goog.events.sources_[srcHashCode];
+    var srcUid = goog.getUid(/** @type {Object} */ (opt_obj));
+    if (goog.events.sources_[srcUid]) {
+      var sourcesArray = goog.events.sources_[srcUid];
       for (var i = sourcesArray.length - 1; i >= 0; i--) {
         var listener = sourcesArray[i];
         if ((noType || opt_type == listener.type) &&
@@ -9484,9 +10176,9 @@ goog.events.getListeners_ = function(obj, type, capture) {
     map = map[type];
     if (capture in map) {
       map = map[capture];
-      var objHashCode = goog.getHashCode(obj);
-      if (map[objHashCode]) {
-        return map[objHashCode];
+      var objUid = goog.getUid(obj);
+      if (map[objUid]) {
+        return map[objUid];
       }
     }
   }
@@ -9539,8 +10231,8 @@ goog.events.getListener = function(src, type, listener, opt_capt, opt_handler) {
  *     the requested type and/or capture phase.
  */
 goog.events.hasListener = function(obj, opt_type, opt_capture) {
-  var objHashCode = goog.getHashCode(obj)
-  var listeners = goog.events.sources_[objHashCode];
+  var objUid = goog.getUid(obj);
+  var listeners = goog.events.sources_[objUid];
 
   if (listeners) {
     var hasType = goog.isDef(opt_type);
@@ -9548,8 +10240,8 @@ goog.events.hasListener = function(obj, opt_type, opt_capture) {
 
     if (hasType && hasCapture) {
       // Lookup in the listener tree whether the specified listener exists.
-      var map = goog.events.listenerTree_[opt_type]
-      return !!map && !!map[opt_capture] && objHashCode in map[opt_capture];
+      var map = goog.events.listenerTree_[opt_type];
+      return !!map && !!map[opt_capture] && objUid in map[opt_capture];
 
     } else if (!(hasType || hasCapture)) {
       // Simple check for whether the event target has any listeners at all.
@@ -9558,8 +10250,8 @@ goog.events.hasListener = function(obj, opt_type, opt_capture) {
     } else {
       // Iterate through the listeners for the event target to find a match.
       return goog.array.some(listeners, function(listener) {
-          return (hasType && listener.type == opt_type) ||
-            (hasCapture && listener.capture == opt_capture);
+        return (hasType && listener.type == opt_type) ||
+               (hasCapture && listener.capture == opt_capture);
       });
     }
   }
@@ -9590,7 +10282,7 @@ goog.events.expose = function(e) {
  * Constants for event names.
  * @enum {string}
  */
-// TODO: Move to its own file.
+// TODO(user): Move to its own file.
 goog.events.EventType = {
   // Mouse events
   CLICK: 'click',
@@ -9611,7 +10303,7 @@ goog.events.EventType = {
   BLUR: 'blur',
   FOCUS: 'focus',
   DEACTIVATE: 'deactivate', // IE only
-  // TODO: Test these. I experienced problems with DOMFocusIn, the event
+  // TODO(user): Test these. I experienced problems with DOMFocusIn, the event
   // just wasn't firing.
   FOCUSIN: goog.userAgent.IE ? 'focusin' : 'DOMFocusIn',
   FOCUSOUT: goog.userAgent.IE ? 'focusout' : 'DOMFocusOut',
@@ -9620,19 +10312,29 @@ goog.events.EventType = {
   CHANGE: 'change',
   SELECT: 'select',
   SUBMIT: 'submit',
+  INPUT: 'input',
+
+  // Drag and drop
+  DRAGSTART: 'dragstart',
+  DRAGENTER: 'dragenter',
+  DRAGOVER: 'dragover',
+  DRAGLEAVE: 'dragleave',
+  DROP: 'drop',
 
   // Misc
   CONTEXTMENU: 'contextmenu',
-  DRAGSTART: 'dragstart',
   ERROR: 'error',
-  HASHCHANGE: 'hashchange',
   HELP: 'help',
   LOAD: 'load',
   LOSECAPTURE: 'losecapture',
   READYSTATECHANGE: 'readystatechange',
   RESIZE: 'resize',
   SCROLL: 'scroll',
-  UNLOAD: 'unload'
+  UNLOAD: 'unload',
+
+  // HTML 5 History events
+  HASHCHANGE: 'hashchange',
+  POPSTATE: 'popstate'
 };
 
 
@@ -9688,10 +10390,10 @@ goog.events.fireListeners = function(obj, type, capture, eventObject) {
 goog.events.fireListeners_ = function(map, obj, type, capture, eventObject) {
   var retval = 1;
 
-  var objHashCode = goog.getHashCode(obj);
-  if (map[objHashCode]) {
+  var objUid = goog.getUid(obj);
+  if (map[objUid]) {
     map.remaining_--;
-    var listenerArray = map[objHashCode];
+    var listenerArray = map[objUid];
 
     // If locked_ is not set (and if already 0) initialize it to 1.
     if (!listenerArray.locked_) {
@@ -9715,7 +10417,7 @@ goog.events.fireListeners_ = function(map, obj, type, capture, eventObject) {
       }
     } finally {
       listenerArray.locked_--;
-      goog.events.cleanUp_(type, capture, objHashCode, listenerArray);
+      goog.events.cleanUp_(type, capture, objUid, listenerArray);
     }
   }
 
@@ -9892,7 +10594,7 @@ goog.events.handleBrowserEvent_ = function(key, opt_evt) {
   }
   map = map[type];
   var retval, targetsMap;
-  if (goog.userAgent.IE) {
+  if (goog.events.synthesizeEventPropagation_()) {
     var ieEvent = opt_evt ||
         /** @type {Event} */ (goog.getObjectByName('window.event'));
 
@@ -10025,7 +10727,7 @@ goog.events.markIeEvent_ = function(e) {
  * @param {Event} e  The IE browser event.
  * @return {boolean} True if the event object has been marked.
  * @private
- * @notypecheck TODO: Fix this.
+ * @notypecheck TODO(nicksantos): Fix this.
  */
 goog.events.isMarkedIeEvent_ = function(e) {
   return e.keyCode < 0 || e.returnValue != undefined;
@@ -10050,24 +10752,46 @@ goog.events.getUniqueId = function(identifier) {
   return identifier + '_' + goog.events.uniqueIdCounter_++;
 };
 
-// Input 20
+
+/**
+ * Returns whether we should synthesize the W3C event propagation.  Versions of
+ * IE, up to IE9, don't support addEventListener or the capture phase.
+ * @return {boolean} Whether to use IE's proprietary event model.
+ * @private
+ */
+goog.events.synthesizeEventPropagation_ = function() {
+  if (goog.events.requiresSyntheticEventPropagation_ === undefined) {
+    // TODO(user): goog.events is used in a non DOM context, even though it
+    // couldn't be used with DOM events.  We therefore assume that if we
+    // got here that goog.global===window to keep the compiler happy.  We can't
+    // use navigator.userAgent yet because the IE9 platform preview still
+    // reports as MSIE 8.0.
+    goog.events.requiresSyntheticEventPropagation_ =
+        goog.userAgent.IE && !goog.global['addEventListener'];
+  }
+  return goog.events.requiresSyntheticEventPropagation_;
+};
+
+// Input 22
+// Copyright 2005 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2005 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Implementation of EventTarget as defined by W3C DOM 2/3.
  *
+*
+*
  * @see ../demos/eventtarget.html
  */
 
@@ -10247,745 +10971,29 @@ goog.events.EventTarget.prototype.disposeInternal = function() {
   this.parentEventTarget_ = null;
 };
 
-// Input 21
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// Copyright 2006 Google Inc. All Rights Reserved.
-
-/**
- * @fileoverview A utility class for representing a numeric box.
- */
-
-
-goog.provide('goog.math.Box');
-
-goog.require('goog.math.Coordinate');
-
-
-
-/**
- * Class for representing a box. A box is specified as a top, right, bottom,
- * and left. A box is useful for representing margins and padding.
- *
- * @param {number} top Top.
- * @param {number} right Right.
- * @param {number} bottom Bottom.
- * @param {number} left Left.
- * @constructor
- */
-goog.math.Box = function(top, right, bottom, left) {
-  /**
-   * Top
-   * @type {number}
-   */
-  this.top = top;
-
-  /**
-   * Right
-   * @type {number}
-   */
-  this.right = right;
-
-  /**
-   * Bottom
-   * @type {number}
-   */
-  this.bottom = bottom;
-
-  /**
-   * Left
-   * @type {number}
-   */
-  this.left = left;
-};
-
-
-/**
- * Creates a Box by bounding a collection of goog.math.Coordinate objects
- * @param {...goog.math.Coordinate} var_args Coordinates to be included inside
- *     the box.
- * @return {goog.math.Box} A Box containing all the specified Coordinates.
- */
-goog.math.Box.boundingBox = function(var_args) {
-  var box = new goog.math.Box(arguments[0].y, arguments[0].x,
-                              arguments[0].y, arguments[0].x);
-  for (var i = 1; i < arguments.length; i++) {
-    var coord = arguments[i];
-    box.top = Math.min(box.top, coord.y);
-    box.right = Math.max(box.right, coord.x);
-    box.bottom = Math.max(box.bottom, coord.y);
-    box.left = Math.min(box.left, coord.x);
-  }
-  return box;
-};
-
-
-/**
- * Creates a copy of the box with the same dimensions.
- * @return {goog.math.Box} A clone of this Box.
- */
-goog.math.Box.prototype.clone = function() {
-  return new goog.math.Box(this.top, this.right, this.bottom, this.left);
-};
-
-
-if (goog.DEBUG) {
-  /**
-   * Returns a nice string representing the box.
-   * @return {string} In the form (50t, 73r, 24b, 13l).
-   */
-  goog.math.Box.prototype.toString = function() {
-    return '(' + this.top + 't, ' + this.right + 'r, ' + this.bottom + 'b, ' +
-           this.left + 'l)';
-  };
-}
-
-
-/**
- * Returns whether the box contains a coordinate or another box.
- *
- * @param {goog.math.Coordinate|goog.math.Box} other A Coordinate or a Box.
- * @return {boolean} Whether the box contains the coordinate or other box.
- */
-goog.math.Box.prototype.contains = function(other) {
-  return goog.math.Box.contains(this, other);
-};
-
-
-/**
- * Expands box with the given margins.
- *
- * @param {number|goog.math.Box} top Top margin or box with all margins.
- * @param {number=} opt_right Right margin.
- * @param {number=} opt_bottom Bottom margin.
- * @param {number=} opt_left Left margin.
- * @return {goog.math.Box} A reference to this Box.
- */
-goog.math.Box.prototype.expand = function(top, opt_right, opt_bottom,
-    opt_left) {
-  if (goog.isObject(top)) {
-    this.top -= top.top;
-    this.right += top.right;
-    this.bottom += top.bottom;
-    this.left -= top.left;
-  } else {
-    this.top -= top;
-    this.right += opt_right;
-    this.bottom += opt_bottom;
-    this.left -= opt_left;
-  }
-
-  return this;
-};
-
-
-/**
- * Compares boxes for equality.
- * @param {goog.math.Box} a A Box.
- * @param {goog.math.Box} b A Box.
- * @return {boolean} True iff the boxes are equal, or if both are null.
- */
-goog.math.Box.equals = function(a, b) {
-  if (a == b) {
-    return true;
-  }
-  if (!a || !b) {
-    return false;
-  }
-  return a.top == b.top && a.right == b.right &&
-         a.bottom == b.bottom && a.left == b.left;
-};
-
-
-/**
- * Returns whether a box contains a coordinate or another box.
- *
- * @param {goog.math.Box} box A Box.
- * @param {goog.math.Coordinate|goog.math.Box} other A Coordinate or a Box.
- * @return {boolean} Whether the box contains the coordinate or other box.
- */
-goog.math.Box.contains = function(box, other) {
-  if (!box || !other) {
-    return false;
-  }
-
-  if (other instanceof goog.math.Box) {
-    return other.left >= box.left && other.right <= box.right &&
-      other.top >= box.top && other.bottom <= box.bottom;
-  }
-
-  // other is a Coordinate.
-  return other.x >= box.left && other.x <= box.right &&
-         other.y >= box.top && other.y <= box.bottom;
-};
-
-
-/**
- * Returns the distance between a coordinate and the nearest corner/side of a
- * box. Returns zero if the coordinate is inside the box.
- *
- * @param {goog.math.Box} box A Box.
- * @param {goog.math.Coordinate} coord A Coordinate.
- * @return {number} The distance between {@code coord} and the nearest
- *     corner/side of {@code box}, or zero if {@code coord} is inside
- *     {@code box}.
- */
-goog.math.Box.distance = function(box, coord) {
-  if (coord.x >= box.left && coord.x <= box.right) {
-    if (coord.y >= box.top && coord.y <= box.bottom) {
-      return 0;
-    }
-    return coord.y < box.top ? box.top - coord.y : coord.y - box.bottom;
-  }
-
-  if (coord.y >= box.top && coord.y <= box.bottom) {
-    return coord.x < box.left ? box.left - coord.x : coord.x - box.right;
-  }
-
-  return goog.math.Coordinate.distance(coord,
-      new goog.math.Coordinate(coord.x < box.left ? box.left : box.right,
-                               coord.y < box.top ? box.top : box.bottom));
-};
-
-
-/**
- * Returns whether two boxes intersect.
- *
- * @param {goog.math.Box} a A Box.
- * @param {goog.math.Box} b A second Box.
- * @return {boolean} Whether the boxes intersect.
- */
-goog.math.Box.intersects = function(a, b) {
-  return (a.left <= b.right && b.left <= a.right &&
-          a.top <= b.bottom && b.top <= a.bottom);
-};
-
-// Input 22
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// Copyright 2006 Google Inc. All Rights Reserved.
-
-/**
- * @fileoverview A utility class for representing a numeric range.
- */
-
-
-goog.provide('goog.math.Range');
-
-
-/**
- * A number range.
- * @param {number} a One end of the range.
- * @param {number} b The other end of the range.
- * @constructor
- */
-goog.math.Range = function(a, b) {
-  a = Number(a);
-  b = Number(b);
-
-  /**
-   * The lowest value in the range.
-   * @type {number}
-   */
-  this.start = a < b ? a : b;
-
-  /**
-   * The highest value in the range.
-   * @type {number}
-   */
-  this.end = a < b ? b : a;
-};
-
-
-/**
- * @return {goog.math.Range} A clone of this Range.
- */
-goog.math.Range.prototype.clone = function() {
-  return new goog.math.Range(this.start, this.end);
-};
-
-
-if (goog.DEBUG) {
-  /**
-   * Returns a string representing the range.
-   * @return {string} In the form [-3.5, 8.13].
-   */
-  goog.math.Range.prototype.toString = function() {
-    return '[' + this.start + ', ' + this.end + ']';
-  };
-}
-
-
-/**
- * Compares ranges for equality.
- * @param {goog.math.Range} a A Range.
- * @param {goog.math.Range} b A Range.
- * @return {boolean} True iff both the starts and the ends of the ranges are
- *     equal, or if both ranges are null.
- */
-goog.math.Range.equals = function(a, b) {
-  if (a == b) {
-    return true;
-  }
-  if (!a || !b) {
-    return false;
-  }
-  return a.start == b.start && a.end == b.end;
-};
-
-
-/**
- * Given two ranges on the same dimension, this method returns the intersection
- * of those ranges.
- * @param {goog.math.Range} a A Range.
- * @param {goog.math.Range} b A Range.
- * @return {goog.math.Range?} A new Range representing the intersection of two
- *     ranges, or null if there is no intersection. Ranges are assumed to
- *     include their end points, and the intersection can be a point.
- */
-goog.math.Range.intersection = function(a, b) {
-  var c0 = Math.max(a.start, b.start);
-  var c1 = Math.min(a.end, b.end);
-  return (c0 <= c1) ? new goog.math.Range(c0, c1) : null;
-};
-
-
-/**
- * Given two ranges on the same dimension, determines whether they intersect.
- * @param {goog.math.Range} a A Range.
- * @param {goog.math.Range} b A Range.
- * @return {boolean} Whether they intersect.
- */
-goog.math.Range.hasIntersection = function(a, b) {
-  return Math.max(a.start, b.start) <= Math.min(a.end, b.end);
-};
-
-
-/**
- * Given two ranges on the same dimension, this returns a range that covers
- * both ranges.
- * @param {goog.math.Range} a A Range.
- * @param {goog.math.Range} b A Range.
- * @return {goog.math.Range} A new Range representing the bounding range.
- */
-goog.math.Range.boundingRange = function(a, b) {
-  return new goog.math.Range(Math.min(a.start, b.start),
-                             Math.max(a.end, b.end));
-};
-
-
-/**
- * Given two ranges, returns true if the first range completely overlaps the
- * second.
- * @param {goog.math.Range} a The first Range.
- * @param {goog.math.Range} b The second Range.
- * @return {boolean} True if b is contained inside a, false otherwise.
- */
-goog.math.Range.contains = function(a, b) {
-  return a.start <= b.start && a.end >= b.end;
-};
-
-
-/**
- * Given a range and a point, returns true if the range contains the point.
- * @param {goog.math.Range} range The range.
- * @param {number} p The point.
- * @return {boolean} True if p is contained inside range, false otherwise.
- */
-goog.math.Range.containsPoint = function(range, p) {
-  return range.start <= p && range.end >= p;
-};
-
 // Input 23
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Copyright 2006 Google Inc. All Rights Reserved.
-
-/**
- * @fileoverview A utility class for representing rectangles.
- */
-
-
-goog.provide('goog.math.Rect');
-
-goog.require('goog.math.Box');
-goog.require('goog.math.Size');
-
-/**
- * Class for representing rectangular regions.
- * @param {number} x Left.
- * @param {number} y Top.
- * @param {number} w Width.
- * @param {number} h Height.
- * @constructor
- */
-goog.math.Rect = function(x, y, w, h) {
-  /**
-   * Left
-   * @type {number}
-   */
-  this.left = x;
-
-  /**
-   * Top
-   * @type {number}
-   */
-  this.top = y;
-
-  /**
-   * Width
-   * @type {number}
-   */
-  this.width = w;
-
-  /**
-   * Height
-   * @type {number}
-   */
-  this.height = h;
-};
-
-
-/**
- * Returns a new copy of the rectangle.
- * @return {goog.math.Rect} A clone of this Rectangle.
- */
-goog.math.Rect.prototype.clone = function() {
-  return new goog.math.Rect(this.left, this.top, this.width, this.height);
-};
-
-
-/**
- * Returns a new Box object with the same position and dimensions as this
- * rectangle.
- * @return {goog.math.Box} A new Box representation of this Rectangle.
- */
-goog.math.Rect.prototype.toBox = function() {
-  var right = this.left + this.width;
-  var bottom = this.top + this.height;
-  return new goog.math.Box(this.top,
-                           right,
-                           bottom,
-                           this.left);
-};
-
-
-/**
- * Creates a new Rect object with the same position and dimensions as a given
- * Box.  Note that this is only the inverse of toBox if left/top are defined.
- * @param {goog.math.Box} box A box.
- * @return {goog.math.Rect} A new Rect initialized with the box's position
- *     and size.
- */
-goog.math.Rect.createFromBox = function(box) {
-  return new goog.math.Rect(box.left, box.top,
-      box.right - box.left, box.bottom - box.top);
-};
-
-
-if (goog.DEBUG) {
-  /**
-   * Returns a nice string representing size and dimensions of rectangle.
-   * @return {string} In the form (50, 73 - 75w x 25h).
-   */
-  goog.math.Rect.prototype.toString = function() {
-    return '(' + this.left + ', ' + this.top + ' - ' + this.width + 'w x ' +
-           this.height + 'h)';
-  };
-}
-
-
-/**
- * Compares rectangles for equality.
- * @param {goog.math.Rect} a A Rectangle.
- * @param {goog.math.Rect} b A Rectangle.
- * @return {boolean} True iff the rectangles have the same left, top, width,
- *     and height, or if both are null.
- */
-goog.math.Rect.equals = function(a, b) {
-  if (a == b) {
-    return true;
-  }
-  if (!a || !b) {
-    return false;
-  }
-  return a.left == b.left && a.width == b.width &&
-         a.top == b.top && a.height == b.height;
-};
-
-
-/**
- * Computes the intersection of this rectangle and the rectangle parameter.  If
- * there is no intersection, returns false and leaves this rectangle as is.
- * @param {goog.math.Rect} rect A Rectangle.
- * @return {boolean} True iff this rectangle intersects with the parameter.
- */
-goog.math.Rect.prototype.intersection = function(rect) {
-  var x0 = Math.max(this.left, rect.left);
-  var x1 = Math.min(this.left + this.width, rect.left + rect.width);
-
-  if (x0 <= x1) {
-    var y0 = Math.max(this.top, rect.top);
-    var y1 = Math.min(this.top + this.height, rect.top + rect.height);
-
-    if (y0 <= y1) {
-      this.left = x0;
-      this.top = y0;
-      this.width = x1 - x0;
-      this.height = y1 - y0;
-
-      return true;
-    }
-  }
-  return false;
-};
-
-
-/**
- * Returns the intersection of two rectangles. Two rectangles intersect if they
- * touch at all, for example, two zero width and height rectangles would
- * intersect if they had the same top and left.
- * @param {goog.math.Rect} a A Rectangle.
- * @param {goog.math.Rect} b A Rectangle.
- * @return {goog.math.Rect?} A new intersection rect (even if width and height
- *     are 0), or null if there is no intersection.
- */
-goog.math.Rect.intersection = function(a, b) {
-  // There is no nice way to do intersection via a clone, because any such
-  // clone might be unnecessary if this function returns null.  So, we duplicate
-  // code from above.
-
-  var x0 = Math.max(a.left, b.left);
-  var x1 = Math.min(a.left + a.width, b.left + b.width);
-
-  if (x0 <= x1) {
-    var y0 = Math.max(a.top, b.top);
-    var y1 = Math.min(a.top + a.height, b.top + b.height);
-
-    if (y0 <= y1) {
-      return new goog.math.Rect(x0, y0, x1 - x0, y1 - y0);
-    }
-  }
-  return null;
-};
-
-
-/**
- * Returns whether two rectangles intersect. Two rectangles intersect if they
- * touch at all, for example, two zero width and height rectangles would
- * intersect if they had the same top and left.
- * @param {goog.math.Rect} a A Rectangle.
- * @param {goog.math.Rect} b A Rectangle.
- * @return {boolean} Whether a and b intersect.
- */
-goog.math.Rect.intersects = function(a, b) {
-  return (a.left <= b.left + b.width && b.left <= a.left + a.width &&
-      a.top <= b.top + b.height && b.top <= a.top + a.height);
-};
-
-
-/**
- * Returns whether a rectangle intersects this rectangle.
- * @param {goog.math.Rect} rect A rectangle.
- * @return {boolean} Whether rect intersects this rectangle.
- */
-goog.math.Rect.prototype.intersects = function(rect) {
-  return goog.math.Rect.intersects(this, rect);
-};
-
-
-/**
- * Computes the difference regions between two rectangles. The return value is
- * an array of 0 to 4 rectangles defining the remaining regions of the first
- * rectangle after the second has been subtracted.
- * @param {goog.math.Rect} a A Rectangle.
- * @param {goog.math.Rect} b A Rectangle.
- * @return {Array.<goog.math.Rect>} An array with 0 to 4 rectangles which
- *     together define the difference area of rectangle a minus rectangle b.
- */
-goog.math.Rect.difference = function(a, b) {
-  var intersection = goog.math.Rect.intersection(a, b);
-  if (!intersection || !intersection.height || !intersection.width) {
-    return [a.clone()];
-  }
-
-  var result = [];
-
-  var top = a.top;
-  var height = a.height;
-
-  var ar = a.left + a.width;
-  var ab = a.top + a.height;
-
-  var br = b.left + b.width;
-  var bb = b.top + b.height;
-
-  // Subtract off any area on top where A extends past B
-  if (b.top > a.top) {
-    result.push(new goog.math.Rect(a.left, a.top, a.width, b.top - a.top));
-    top = b.top;
-    // If we're moving the top down, we also need to subtract the height diff.
-    height -= b.top - a.top;
-  }
-  // Subtract off any area on bottom where A extends past B
-  if (bb < ab) {
-    result.push(new goog.math.Rect(a.left, bb, a.width, ab - bb));
-    height = bb - top;
-  }
-  // Subtract any area on left where A extends past B
-  if (b.left > a.left) {
-    result.push(new goog.math.Rect(a.left, top, b.left - a.left, height));
-  }
-  // Subtract any area on right where A extends past B
-  if (br < ar) {
-    result.push(new goog.math.Rect(br, top, ar - br, height));
-  }
-
-  return result;
-};
-
-
-/**
- * Computes the difference regions between this rectangle and {@code rect}. The
- * return value is an array of 0 to 4 rectangles defining the remaining regions
- * of this rectangle after the other has been subtracted.
- * @param {goog.math.Rect} rect A Rectangle.
- * @return {Array.<goog.math.Rect>} An array with 0 to 4 rectangles which
- *     together define the difference area of rectangle a minus rectangle b.
- */
-goog.math.Rect.prototype.difference = function(rect) {
-  return goog.math.Rect.difference(this, rect);
-};
-
-
-/**
- * Expand this rectangle to also include the area of the given rectangle.
- * @param {goog.math.Rect} rect The other rectangle.
- */
-goog.math.Rect.prototype.boundingRect = function(rect) {
-  // We compute right and bottom before we change left and top below.
-  var right = Math.max(this.left + this.width, rect.left + rect.width);
-  var bottom = Math.max(this.top + this.height, rect.top + rect.height);
-
-  this.left = Math.min(this.left, rect.left);
-  this.top = Math.min(this.top, rect.top);
-
-  this.width = right - this.left;
-  this.height = bottom - this.top;
-};
-
-
-/**
- * Returns a new rectangle which completely contains both input rectangles.
- * @param {goog.math.Rect} a A rectangle.
- * @param {goog.math.Rect} b A rectangle.
- * @return {goog.math.Rect?} A new bounding rect, or null if either rect is
- *     null.
- */
-goog.math.Rect.boundingRect = function(a, b) {
-  if (!a || !b) {
-    return null;
-  }
-
-  var clone = a.clone();
-  clone.boundingRect(b);
-
-  return clone;
-};
-
-/**
- * Tests whether this rectangle entirely contains another rectangle or
- * coordinate.
- *
- * @param {goog.math.Rect|goog.math.Coordinate} another The rectangle or
- *     coordinate to test for containment.
- * @return {boolean} Whether this rectangle contains given rectangle or
- *     coordinate.
- */
-goog.math.Rect.prototype.contains = function(another) {
-  if (another instanceof goog.math.Rect) {
-    return this.left <= another.left &&
-           this.left + this.width >= another.left + another.width &&
-           this.top <= another.top &&
-           this.top + this.height >= another.top + another.height;
-  } else { // (another instanceof goog.math.Coordinate)
-    return another.x >= this.left &&
-           another.x <= this.left + this.width &&
-           another.y >= this.top &&
-           another.y <= this.top + this.height;
-  }
-};
-
-
-/**
- * Returns the size of this rectangle.
- * @return {goog.math.Size} The size of this rectangle.
- */
-goog.math.Rect.prototype.getSize = function() {
-  return new goog.math.Size(this.width, this.height);
-};
-
-// Input 24
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// Copyright 2006 Google Inc. All Rights Reserved.
 
 /**
  * @fileoverview Additional mathematical functions.
+*
  */
-
 
 goog.provide('goog.math');
 
-
 goog.require('goog.array');
-// TODO: Remove this require once all dependant files require the
-// correct subclasses instead of just goog.math.
-goog.require('goog.math.Box');
-goog.require('goog.math.Coordinate');
-goog.require('goog.math.Range');
-goog.require('goog.math.Rect');
-goog.require('goog.math.Size');
 
 
 /**
@@ -11321,20 +11329,20 @@ goog.math.isFiniteNumber = function(num) {
   return isFinite(num) && !isNaN(num);
 };
 
-// Input 25
+// Input 24
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Copyright 2006 Google Inc. All Rights Reserved.
 
 /**
  * @fileoverview This event wrapper will dispatch an event when the user uses
@@ -11348,6 +11356,7 @@ goog.math.isFiniteNumber = function(num) {
  * against extremely large deltas, use the setMaxDeltaX and setMaxDeltaY APIs
  * to set maximum values that make sense for your application.
  *
+*
  * @see ../demos/mousewheelhandler.html
  */
 
@@ -11565,23 +11574,24 @@ goog.events.MouseWheelEvent = function(detail, browserEvent, deltaX, deltaY) {
 };
 goog.inherits(goog.events.MouseWheelEvent, goog.events.BrowserEvent);
 
-// Input 26
+// Input 25
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Names of standard colors with their associated hex values.
+*
  */
 
 goog.provide('goog.color.names');
@@ -11743,23 +11753,25 @@ goog.color.names = {
   'yellowgreen': '#9acd32'
 };
 
-// Input 27
+// Input 26
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Utilities related to color and color conversion.
+*
+*
  */
 
 goog.provide('goog.color');
@@ -12488,25 +12500,26 @@ goog.color.colorDiff_ = function(rgb1, rgb2) {
       Math.abs(rgb1[2] - rgb2[2]);
 };
 
-// Input 28
+// Input 27
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Copyright 2006 Google Inc. All Rights Reserved.
 
 /**
  * @fileoverview A timer class to which other classes and objects can
  * listen on.  This is only an abstraction above setInterval.
  *
+*
  * @see ../demos/timers.html
  */
 
@@ -12732,13 +12745,18 @@ goog.Timer.TICK = 'tick';
 
 
 /**
- * Calls the given function once, after the optional pause
+ * Calls the given function once, after the optional pause.
+ *
+ * The function is always called asynchronously, even if the delay is 0. This
+ * is a common trick to schedule a function to run after a batch of browser
+ * event processing.
+ *
  * @param {Function} listener Function or object that has a handleEvent method.
- * @param {number=} opt_interval Number of ms between ticks (Default: 1ms).
+ * @param {number=} opt_delay Milliseconds to wait; default is 0.
  * @param {Object=} opt_handler Object in whose scope to call the listener.
  * @return {number} A handle to the timer ID.
  */
-goog.Timer.callOnce = function(listener, opt_interval, opt_handler) {
+goog.Timer.callOnce = function(listener, opt_delay, opt_handler) {
   if (goog.isFunction(listener)) {
     if (opt_handler) {
       listener = goog.bind(listener, opt_handler);
@@ -12750,14 +12768,14 @@ goog.Timer.callOnce = function(listener, opt_interval, opt_handler) {
    throw Error('Invalid listener argument');
   }
 
-  if (opt_interval > goog.Timer.MAX_TIMEOUT_) {
+  if (opt_delay > goog.Timer.MAX_TIMEOUT_) {
     // Timeouts greater than MAX_INT return immediately due to integer
     // overflow in many browsers.  Since MAX_INT is 24.8 days, just don't
     // schedule anything at all.
     return -1;
   } else {
     return goog.Timer.defaultTimerObject.setTimeout(
-        listener, opt_interval || 0);
+        listener, opt_delay || 0);
   }
 };
 
@@ -12770,83 +12788,40 @@ goog.Timer.clear = function(timerId) {
   goog.Timer.defaultTimerObject.clearTimeout(timerId);
 };
 
-// Input 29
+// Input 28
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
-
 /**
- * @fileoverview Set of objects that allow animation and visual effects to be
- * easily achieved.
+ * @fileoverview Classes for doing animations and visual effects.
  *
+*
  * (Based loosly on my animation code for 13thparallel.org, with extra
  * inspiration from the DojoToolkit's modifications to my code)
+*
  */
 
-goog.provide('goog.fx');
 goog.provide('goog.fx.Animation');
 goog.provide('goog.fx.Animation.EventType');
 goog.provide('goog.fx.Animation.State');
 goog.provide('goog.fx.AnimationEvent');
-goog.provide('goog.fx.easing');
 
 goog.require('goog.Timer');
 goog.require('goog.array');
 goog.require('goog.events.Event');
 goog.require('goog.events.EventTarget');
 goog.require('goog.object');
-
-
-//==============================================================================
-// Constants
-//==============================================================================
-
-
-/**
- * Default timeout for animations (in milliseconds).
- * @type {number}
- */
-goog.fx.TIMEOUT = 20;
-
-
-
-/**
- * Ease in - Start slow and speed up.
- * @param {number} t Input between 0 and 1.
- * @return {number} Output between 0 and 1.
- */
-goog.fx.easing.easeIn = function(t) {
-  return t * t * t;
-};
-
-/**
- * Ease out - Start fastest and slows to a stop.
- * @param {number} t Input between 0 and 1.
- * @return {number} Output between 0 and 1.
- */
-goog.fx.easing.easeOut = function(t) {
-  return 1 - Math.pow(1 - t, 3);
-};
-
-
-/**
- * Ease in and out - Start slow, speed up, then slow down.
- * @param {number} t Input between 0 and 1.
- * @return {number} Output between 0 and 1.
- */
-goog.fx.easing.inAndOut = function(t) {
-  return 3 * t * t - 2 * t * t * t;
-};
 
 
 
@@ -12975,6 +12950,13 @@ goog.fx.Animation.State = {
 
 
 /**
+ * Default timeout for animations (in milliseconds).
+ * @type {number}
+ */
+goog.fx.Animation.TIMEOUT = 20;
+
+
+/**
  * A map of animations which should be cycled on the global timer.
  * @type {Object}
  * @private
@@ -13000,15 +12982,15 @@ goog.fx.Animation.cycleAnimations_ = function() {
   // Cycle all animations at the "same time".
   var now = goog.now();
 
-  for (var hc in goog.fx.Animation.activeAnimations_) {
-    goog.fx.Animation.activeAnimations_[hc].cycle(now);
+  for (var uid in goog.fx.Animation.activeAnimations_) {
+    goog.fx.Animation.activeAnimations_[uid].cycle(now);
   }
 
   goog.fx.Animation.globalTimer_ =
       goog.object.isEmpty(goog.fx.Animation.activeAnimations_) ?
         null :
         goog.Timer.defaultTimerObject.setTimeout(
-            goog.fx.Animation.cycleAnimations_, goog.fx.TIMEOUT);
+            goog.fx.Animation.cycleAnimations_, goog.fx.Animation.TIMEOUT);
 };
 
 
@@ -13017,15 +12999,15 @@ goog.fx.Animation.cycleAnimations_ = function() {
  * @param {Object} animation The animation to register.
  */
 goog.fx.Animation.registerAnimation = function(animation) {
-  var hc = goog.getHashCode(animation);
-  if (!(hc in goog.fx.Animation.activeAnimations_)) {
-    goog.fx.Animation.activeAnimations_[hc] = animation;
+  var uid = goog.getUid(animation);
+  if (!(uid in goog.fx.Animation.activeAnimations_)) {
+    goog.fx.Animation.activeAnimations_[uid] = animation;
   }
 
   // If the timer is not already started, start it now.
   if (!goog.fx.Animation.globalTimer_) {
     goog.fx.Animation.globalTimer_ = goog.Timer.defaultTimerObject.setTimeout(
-        goog.fx.Animation.cycleAnimations_, goog.fx.TIMEOUT);
+        goog.fx.Animation.cycleAnimations_, goog.fx.Animation.TIMEOUT);
   }
 };
 
@@ -13036,8 +13018,8 @@ goog.fx.Animation.registerAnimation = function(animation) {
  * @param {Object} animation The animation to unregister.
  */
 goog.fx.Animation.unregisterAnimation = function(animation) {
-  var hc = goog.getHashCode(animation);
-  delete goog.fx.Animation.activeAnimations_[hc];
+  var uid = goog.getUid(animation);
+  delete goog.fx.Animation.activeAnimations_[uid];
 
   // If a timer is running and we no longer have any active timers we stop the
   // timers.
@@ -13095,6 +13077,16 @@ goog.fx.Animation.prototype.endTime = null;
  * @protected
  */
 goog.fx.Animation.prototype.lastFrame = null;
+
+
+/**
+ * Gets the animation state.
+ * @return {goog.fx.Animation.State} The current state.
+ * @protected
+ */
+goog.fx.Animation.prototype.getStateInternal = function() {
+  return this.state_;
+};
 
 
 /**
@@ -13406,7 +13398,7 @@ goog.fx.AnimationEvent = function(type, anim) {
    * The animation object.
    * @type {goog.fx.Animation}
    */
-  // TODO: This can be removed as this is the same as the target
+  // TODO(user): This can be removed as this is the same as the target
   this.anim = anim;
 };
 goog.inherits(goog.fx.AnimationEvent, goog.events.Event);
@@ -13421,24 +13413,607 @@ goog.fx.AnimationEvent.prototype.coordsAsInts = function() {
   return goog.array.map(this.coords, Math.round);
 };
 
-// Input 30
+// Input 29
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
+/**
+ * @fileoverview A utility class for representing a numeric box.
+*
+ */
+
+
+goog.provide('goog.math.Box');
+
+goog.require('goog.math.Coordinate');
+
+
+
+/**
+ * Class for representing a box. A box is specified as a top, right, bottom,
+ * and left. A box is useful for representing margins and padding.
+ *
+ * @param {number} top Top.
+ * @param {number} right Right.
+ * @param {number} bottom Bottom.
+ * @param {number} left Left.
+ * @constructor
+ */
+goog.math.Box = function(top, right, bottom, left) {
+  /**
+   * Top
+   * @type {number}
+   */
+  this.top = top;
+
+  /**
+   * Right
+   * @type {number}
+   */
+  this.right = right;
+
+  /**
+   * Bottom
+   * @type {number}
+   */
+  this.bottom = bottom;
+
+  /**
+   * Left
+   * @type {number}
+   */
+  this.left = left;
+};
+
+
+/**
+ * Creates a Box by bounding a collection of goog.math.Coordinate objects
+ * @param {...goog.math.Coordinate} var_args Coordinates to be included inside
+ *     the box.
+ * @return {goog.math.Box} A Box containing all the specified Coordinates.
+ */
+goog.math.Box.boundingBox = function(var_args) {
+  var box = new goog.math.Box(arguments[0].y, arguments[0].x,
+                              arguments[0].y, arguments[0].x);
+  for (var i = 1; i < arguments.length; i++) {
+    var coord = arguments[i];
+    box.top = Math.min(box.top, coord.y);
+    box.right = Math.max(box.right, coord.x);
+    box.bottom = Math.max(box.bottom, coord.y);
+    box.left = Math.min(box.left, coord.x);
+  }
+  return box;
+};
+
+
+/**
+ * Creates a copy of the box with the same dimensions.
+ * @return {goog.math.Box} A clone of this Box.
+ */
+goog.math.Box.prototype.clone = function() {
+  return new goog.math.Box(this.top, this.right, this.bottom, this.left);
+};
+
+
+if (goog.DEBUG) {
+  /**
+   * Returns a nice string representing the box.
+   * @return {string} In the form (50t, 73r, 24b, 13l).
+   */
+  goog.math.Box.prototype.toString = function() {
+    return '(' + this.top + 't, ' + this.right + 'r, ' + this.bottom + 'b, ' +
+           this.left + 'l)';
+  };
+}
+
+
+/**
+ * Returns whether the box contains a coordinate or another box.
+ *
+ * @param {goog.math.Coordinate|goog.math.Box} other A Coordinate or a Box.
+ * @return {boolean} Whether the box contains the coordinate or other box.
+ */
+goog.math.Box.prototype.contains = function(other) {
+  return goog.math.Box.contains(this, other);
+};
+
+
+/**
+ * Expands box with the given margins.
+ *
+ * @param {number|goog.math.Box} top Top margin or box with all margins.
+ * @param {number=} opt_right Right margin.
+ * @param {number=} opt_bottom Bottom margin.
+ * @param {number=} opt_left Left margin.
+ * @return {goog.math.Box} A reference to this Box.
+ */
+goog.math.Box.prototype.expand = function(top, opt_right, opt_bottom,
+    opt_left) {
+  if (goog.isObject(top)) {
+    this.top -= top.top;
+    this.right += top.right;
+    this.bottom += top.bottom;
+    this.left -= top.left;
+  } else {
+    this.top -= top;
+    this.right += opt_right;
+    this.bottom += opt_bottom;
+    this.left -= opt_left;
+  }
+
+  return this;
+};
+
+
+/**
+ * Expand this box to include another box.
+ * NOTE(user): This is used in code that needs to be very fast, please don't
+ * add functionality to this function at the expense of speed (variable
+ * arguments, accepting multiple argument types, etc).
+ * @param {goog.math.Box} box The box to include in this one.
+ */
+goog.math.Box.prototype.expandToInclude = function(box) {
+  this.left = Math.min(this.left, box.left);
+  this.top = Math.min(this.top, box.top);
+  this.right = Math.max(this.right, box.right);
+  this.bottom = Math.max(this.bottom, box.bottom);
+};
+
+
+/**
+ * Compares boxes for equality.
+ * @param {goog.math.Box} a A Box.
+ * @param {goog.math.Box} b A Box.
+ * @return {boolean} True iff the boxes are equal, or if both are null.
+ */
+goog.math.Box.equals = function(a, b) {
+  if (a == b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  return a.top == b.top && a.right == b.right &&
+         a.bottom == b.bottom && a.left == b.left;
+};
+
+
+/**
+ * Returns whether a box contains a coordinate or another box.
+ *
+ * @param {goog.math.Box} box A Box.
+ * @param {goog.math.Coordinate|goog.math.Box} other A Coordinate or a Box.
+ * @return {boolean} Whether the box contains the coordinate or other box.
+ */
+goog.math.Box.contains = function(box, other) {
+  if (!box || !other) {
+    return false;
+  }
+
+  if (other instanceof goog.math.Box) {
+    return other.left >= box.left && other.right <= box.right &&
+      other.top >= box.top && other.bottom <= box.bottom;
+  }
+
+  // other is a Coordinate.
+  return other.x >= box.left && other.x <= box.right &&
+         other.y >= box.top && other.y <= box.bottom;
+};
+
+
+/**
+ * Returns the distance between a coordinate and the nearest corner/side of a
+ * box. Returns zero if the coordinate is inside the box.
+ *
+ * @param {goog.math.Box} box A Box.
+ * @param {goog.math.Coordinate} coord A Coordinate.
+ * @return {number} The distance between {@code coord} and the nearest
+ *     corner/side of {@code box}, or zero if {@code coord} is inside
+ *     {@code box}.
+ */
+goog.math.Box.distance = function(box, coord) {
+  if (coord.x >= box.left && coord.x <= box.right) {
+    if (coord.y >= box.top && coord.y <= box.bottom) {
+      return 0;
+    }
+    return coord.y < box.top ? box.top - coord.y : coord.y - box.bottom;
+  }
+
+  if (coord.y >= box.top && coord.y <= box.bottom) {
+    return coord.x < box.left ? box.left - coord.x : coord.x - box.right;
+  }
+
+  return goog.math.Coordinate.distance(coord,
+      new goog.math.Coordinate(coord.x < box.left ? box.left : box.right,
+                               coord.y < box.top ? box.top : box.bottom));
+};
+
+
+/**
+ * Returns whether two boxes intersect.
+ *
+ * @param {goog.math.Box} a A Box.
+ * @param {goog.math.Box} b A second Box.
+ * @return {boolean} Whether the boxes intersect.
+ */
+goog.math.Box.intersects = function(a, b) {
+  return (a.left <= b.right && b.left <= a.right &&
+          a.top <= b.bottom && b.top <= a.bottom);
+};
+
+// Input 30
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @fileoverview A utility class for representing rectangles.
+*
+ */
+
+
+goog.provide('goog.math.Rect');
+
+goog.require('goog.math.Box');
+goog.require('goog.math.Size');
+
+/**
+ * Class for representing rectangular regions.
+ * @param {number} x Left.
+ * @param {number} y Top.
+ * @param {number} w Width.
+ * @param {number} h Height.
+ * @constructor
+ */
+goog.math.Rect = function(x, y, w, h) {
+  /**
+   * Left
+   * @type {number}
+   */
+  this.left = x;
+
+  /**
+   * Top
+   * @type {number}
+   */
+  this.top = y;
+
+  /**
+   * Width
+   * @type {number}
+   */
+  this.width = w;
+
+  /**
+   * Height
+   * @type {number}
+   */
+  this.height = h;
+};
+
+
+/**
+ * Returns a new copy of the rectangle.
+ * @return {!goog.math.Rect} A clone of this Rectangle.
+ */
+goog.math.Rect.prototype.clone = function() {
+  return new goog.math.Rect(this.left, this.top, this.width, this.height);
+};
+
+
+/**
+ * Returns a new Box object with the same position and dimensions as this
+ * rectangle.
+ * @return {!goog.math.Box} A new Box representation of this Rectangle.
+ */
+goog.math.Rect.prototype.toBox = function() {
+  var right = this.left + this.width;
+  var bottom = this.top + this.height;
+  return new goog.math.Box(this.top,
+                           right,
+                           bottom,
+                           this.left);
+};
+
+
+/**
+ * Creates a new Rect object with the same position and dimensions as a given
+ * Box.  Note that this is only the inverse of toBox if left/top are defined.
+ * @param {goog.math.Box} box A box.
+ * @return {!goog.math.Rect} A new Rect initialized with the box's position
+ *     and size.
+ */
+goog.math.Rect.createFromBox = function(box) {
+  return new goog.math.Rect(box.left, box.top,
+      box.right - box.left, box.bottom - box.top);
+};
+
+
+if (goog.DEBUG) {
+  /**
+   * Returns a nice string representing size and dimensions of rectangle.
+   * @return {string} In the form (50, 73 - 75w x 25h).
+   */
+  goog.math.Rect.prototype.toString = function() {
+    return '(' + this.left + ', ' + this.top + ' - ' + this.width + 'w x ' +
+           this.height + 'h)';
+  };
+}
+
+
+/**
+ * Compares rectangles for equality.
+ * @param {goog.math.Rect} a A Rectangle.
+ * @param {goog.math.Rect} b A Rectangle.
+ * @return {boolean} True iff the rectangles have the same left, top, width,
+ *     and height, or if both are null.
+ */
+goog.math.Rect.equals = function(a, b) {
+  if (a == b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  return a.left == b.left && a.width == b.width &&
+         a.top == b.top && a.height == b.height;
+};
+
+
+/**
+ * Computes the intersection of this rectangle and the rectangle parameter.  If
+ * there is no intersection, returns false and leaves this rectangle as is.
+ * @param {goog.math.Rect} rect A Rectangle.
+ * @return {boolean} True iff this rectangle intersects with the parameter.
+ */
+goog.math.Rect.prototype.intersection = function(rect) {
+  var x0 = Math.max(this.left, rect.left);
+  var x1 = Math.min(this.left + this.width, rect.left + rect.width);
+
+  if (x0 <= x1) {
+    var y0 = Math.max(this.top, rect.top);
+    var y1 = Math.min(this.top + this.height, rect.top + rect.height);
+
+    if (y0 <= y1) {
+      this.left = x0;
+      this.top = y0;
+      this.width = x1 - x0;
+      this.height = y1 - y0;
+
+      return true;
+    }
+  }
+  return false;
+};
+
+
+/**
+ * Returns the intersection of two rectangles. Two rectangles intersect if they
+ * touch at all, for example, two zero width and height rectangles would
+ * intersect if they had the same top and left.
+ * @param {goog.math.Rect} a A Rectangle.
+ * @param {goog.math.Rect} b A Rectangle.
+ * @return {goog.math.Rect} A new intersection rect (even if width and height
+ *     are 0), or null if there is no intersection.
+ */
+goog.math.Rect.intersection = function(a, b) {
+  // There is no nice way to do intersection via a clone, because any such
+  // clone might be unnecessary if this function returns null.  So, we duplicate
+  // code from above.
+
+  var x0 = Math.max(a.left, b.left);
+  var x1 = Math.min(a.left + a.width, b.left + b.width);
+
+  if (x0 <= x1) {
+    var y0 = Math.max(a.top, b.top);
+    var y1 = Math.min(a.top + a.height, b.top + b.height);
+
+    if (y0 <= y1) {
+      return new goog.math.Rect(x0, y0, x1 - x0, y1 - y0);
+    }
+  }
+  return null;
+};
+
+
+/**
+ * Returns whether two rectangles intersect. Two rectangles intersect if they
+ * touch at all, for example, two zero width and height rectangles would
+ * intersect if they had the same top and left.
+ * @param {goog.math.Rect} a A Rectangle.
+ * @param {goog.math.Rect} b A Rectangle.
+ * @return {boolean} Whether a and b intersect.
+ */
+goog.math.Rect.intersects = function(a, b) {
+  return (a.left <= b.left + b.width && b.left <= a.left + a.width &&
+      a.top <= b.top + b.height && b.top <= a.top + a.height);
+};
+
+
+/**
+ * Returns whether a rectangle intersects this rectangle.
+ * @param {goog.math.Rect} rect A rectangle.
+ * @return {boolean} Whether rect intersects this rectangle.
+ */
+goog.math.Rect.prototype.intersects = function(rect) {
+  return goog.math.Rect.intersects(this, rect);
+};
+
+
+/**
+ * Computes the difference regions between two rectangles. The return value is
+ * an array of 0 to 4 rectangles defining the remaining regions of the first
+ * rectangle after the second has been subtracted.
+ * @param {goog.math.Rect} a A Rectangle.
+ * @param {goog.math.Rect} b A Rectangle.
+ * @return {!Array.<!goog.math.Rect>} An array with 0 to 4 rectangles which
+ *     together define the difference area of rectangle a minus rectangle b.
+ */
+goog.math.Rect.difference = function(a, b) {
+  var intersection = goog.math.Rect.intersection(a, b);
+  if (!intersection || !intersection.height || !intersection.width) {
+    return [a.clone()];
+  }
+
+  var result = [];
+
+  var top = a.top;
+  var height = a.height;
+
+  var ar = a.left + a.width;
+  var ab = a.top + a.height;
+
+  var br = b.left + b.width;
+  var bb = b.top + b.height;
+
+  // Subtract off any area on top where A extends past B
+  if (b.top > a.top) {
+    result.push(new goog.math.Rect(a.left, a.top, a.width, b.top - a.top));
+    top = b.top;
+    // If we're moving the top down, we also need to subtract the height diff.
+    height -= b.top - a.top;
+  }
+  // Subtract off any area on bottom where A extends past B
+  if (bb < ab) {
+    result.push(new goog.math.Rect(a.left, bb, a.width, ab - bb));
+    height = bb - top;
+  }
+  // Subtract any area on left where A extends past B
+  if (b.left > a.left) {
+    result.push(new goog.math.Rect(a.left, top, b.left - a.left, height));
+  }
+  // Subtract any area on right where A extends past B
+  if (br < ar) {
+    result.push(new goog.math.Rect(br, top, ar - br, height));
+  }
+
+  return result;
+};
+
+
+/**
+ * Computes the difference regions between this rectangle and {@code rect}. The
+ * return value is an array of 0 to 4 rectangles defining the remaining regions
+ * of this rectangle after the other has been subtracted.
+ * @param {goog.math.Rect} rect A Rectangle.
+ * @return {!Array.<!goog.math.Rect>} An array with 0 to 4 rectangles which
+ *     together define the difference area of rectangle a minus rectangle b.
+ */
+goog.math.Rect.prototype.difference = function(rect) {
+  return goog.math.Rect.difference(this, rect);
+};
+
+
+/**
+ * Expand this rectangle to also include the area of the given rectangle.
+ * @param {goog.math.Rect} rect The other rectangle.
+ */
+goog.math.Rect.prototype.boundingRect = function(rect) {
+  // We compute right and bottom before we change left and top below.
+  var right = Math.max(this.left + this.width, rect.left + rect.width);
+  var bottom = Math.max(this.top + this.height, rect.top + rect.height);
+
+  this.left = Math.min(this.left, rect.left);
+  this.top = Math.min(this.top, rect.top);
+
+  this.width = right - this.left;
+  this.height = bottom - this.top;
+};
+
+
+/**
+ * Returns a new rectangle which completely contains both input rectangles.
+ * @param {goog.math.Rect} a A rectangle.
+ * @param {goog.math.Rect} b A rectangle.
+ * @return {goog.math.Rect} A new bounding rect, or null if either rect is
+ *     null.
+ */
+goog.math.Rect.boundingRect = function(a, b) {
+  if (!a || !b) {
+    return null;
+  }
+
+  var clone = a.clone();
+  clone.boundingRect(b);
+
+  return clone;
+};
+
+/**
+ * Tests whether this rectangle entirely contains another rectangle or
+ * coordinate.
+ *
+ * @param {goog.math.Rect|goog.math.Coordinate} another The rectangle or
+ *     coordinate to test for containment.
+ * @return {boolean} Whether this rectangle contains given rectangle or
+ *     coordinate.
+ */
+goog.math.Rect.prototype.contains = function(another) {
+  if (another instanceof goog.math.Rect) {
+    return this.left <= another.left &&
+           this.left + this.width >= another.left + another.width &&
+           this.top <= another.top &&
+           this.top + this.height >= another.top + another.height;
+  } else { // (another instanceof goog.math.Coordinate)
+    return another.x >= this.left &&
+           another.x <= this.left + this.width &&
+           another.y >= this.top &&
+           another.y <= this.top + this.height;
+  }
+};
+
+
+/**
+ * Returns the size of this rectangle.
+ * @return {!goog.math.Size} The size of this rectangle.
+ */
+goog.math.Rect.prototype.getSize = function() {
+  return new goog.math.Size(this.width, this.height);
+};
+
+// Input 31
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS-IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 /**
  * @fileoverview Utilities for element styles.
  *
+*
+*
+*
+*
  * @see ../demos/inline_block_quirks.html
  * @see ../demos/inline_block_standards.html
  * @see ../demos/style_viewport.html
@@ -13587,7 +14162,7 @@ goog.style.getComputedPosition = function(element) {
  * Whether named colors like "red" or "lightblue" get translated into a
  * format which can be parsed is browser dependent. Calling this function on
  * transparent elements will return "transparent" in most browsers or
- * "rgba(0, 0, 0, 0)" in Safari.
+ * "rgba(0, 0, 0, 0)" in WebKit.
  * @param {Element} element The element to get the background color of.
  * @return {string} The computed string value of the background color.
  */
@@ -13667,12 +14242,11 @@ goog.style.setPosition = function(el, arg1, opt_arg2) {
     y = opt_arg2;
   }
 
-  el.style.left = typeof x == 'number' ?
-      (buggyGeckoSubPixelPos ? Math.round(x) : x) + 'px' :
-      /** @type {string} */ (x);
-  el.style.top = typeof y == 'number' ?
-      (buggyGeckoSubPixelPos ? Math.round(y) : y) + 'px' :
-      /** @type {string} */ (y);
+  // Round to the nearest pixel for buggy sub-pixel support.
+  goog.style.setPixelStyleProperty_('left', buggyGeckoSubPixelPos, el,
+                                    /** @type {number|string} */ (x));
+  goog.style.setPixelStyleProperty_('top', buggyGeckoSubPixelPos, el,
+                                    /** @type {number|string} */ (y));
 };
 
 
@@ -13910,7 +14484,7 @@ goog.style.scrollIntoContainerView = function(element, container, opt_center) {
  * @return {!goog.math.Coordinate} Client left and top.
  */
 goog.style.getClientLeftTop = function(el) {
-  // NOTE: Gecko prior to 1.9 doesn't support clientTop/Left, see
+  // NOTE(user): Gecko prior to 1.9 doesn't support clientTop/Left, see
   // https://bugzilla.mozilla.org/show_bug.cgi?id=111207
   if (goog.userAgent.GECKO && !goog.userAgent.isVersion('1.9')) {
     var left = parseFloat(goog.style.getComputedStyle(el, 'borderLeftWidth'));
@@ -13941,7 +14515,7 @@ goog.style.getPageOffset = function(el) {
   var box, doc = goog.dom.getOwnerDocument(el);
   var positionStyle = goog.style.getStyle_(el, 'position');
 
-  // NOTE: Gecko pre 1.9 normally use getBoxObjectFor to calculate the
+  // NOTE(user): Gecko pre 1.9 normally use getBoxObjectFor to calculate the
   // position. When invoked for an element with position absolute and a negative
   // position though it can be off by one. Therefor the recursive implementation
   // is used in those (relatively rare) cases.
@@ -13949,11 +14523,11 @@ goog.style.getPageOffset = function(el) {
       !el.getBoundingClientRect && positionStyle == 'absolute' &&
       (box = doc.getBoxObjectFor(el)) && (box.screenX < 0 || box.screenY < 0);
 
-  // NOTE: If element is hidden (display none or disconnected or any the
+  // NOTE(user): If element is hidden (display none or disconnected or any the
   // ancestors are hidden) we get (0,0) by default but we still do the
   // accumulation of scroll position.
 
-  // TODO: Should we check if the node is disconnected and in that case
+  // TODO(user): Should we check if the node is disconnected and in that case
   //            return (0,0)?
 
   var pos = new goog.math.Coordinate(0, 0);
@@ -13981,7 +14555,7 @@ goog.style.getPageOffset = function(el) {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=330619
 
     box = doc.getBoxObjectFor(el);
-    // TODO: Fix the off-by-one error when window is scrolled down
+    // TODO(user): Fix the off-by-one error when window is scrolled down
     // or right more than 1 pixel. The viewport offset does not move in lock
     // step with the window scroll; it moves in increments of 2px and at
     // somewhat random intervals.
@@ -14180,7 +14754,7 @@ goog.style.setPageOffset = function(el, x, opt_y) {
     x = x.x;
   }
 
-  // NOTE: We cannot allow strings for x and y. We could but that would
+  // NOTE(user): We cannot allow strings for x and y. We could but that would
   // require us to manually transform between different units
 
   // Work out deltas
@@ -14199,7 +14773,7 @@ goog.style.setPageOffset = function(el, x, opt_y) {
  * CSS width and height properties so it might set content-box or border-box
  * size depending on the box model the browser is using.)
  *
- * @param {Element} element Element to move.
+ * @param {Element} element Element to set the size of.
  * @param {string|number|goog.math.Size} w Width of the element, or a
  *     size object.
  * @param {string|number=} opt_h Height of the element. Required if w is not a
@@ -14217,11 +14791,51 @@ goog.style.setSize = function(element, w, opt_h) {
     h = opt_h;
   }
 
-  element.style.width = typeof w == 'number' ? Math.round(w) + 'px' :
-                                               /** @type {string} */(w);
-  element.style.height = typeof h == 'number' ? Math.round(h) + 'px' :
-                                                /** @type {string} */(h);
+  goog.style.setWidth(element, /** @type {string|number} */ (w));
+  goog.style.setHeight(element, /** @type {string|number} */ (h));
 };
+
+
+/**
+ * Helper function to sets a dimension or position style property of an element.
+ * Parameter order is to allow the first two parameters to be bound.
+ *
+ * @param {string} property Property name of style to modify ('width', 'height',
+ *     'left', 'top', etc).
+ * @param {boolean} round Whether to round the nearest integer (if property
+ *     is a number).
+ * @param {Element} element Element to set the size of.
+ * @param {string|number} value The value to set.  If a number, 'px' will be
+ *     appended, otherwise the value will be applied directly.
+ * @private
+ */
+goog.style.setPixelStyleProperty_ = function(property, round, element, value) {
+  if (typeof value == 'number') {
+    value = (round ? Math.round(value) : value) + 'px';
+  }
+
+  element.style[property] = /** @type {string} */(value);
+};
+
+
+/**
+ * Set the height of an element.  Sets the element's style property.
+ * @param {Element} element Element to set the height of.
+ * @param {string|number} height The height value to set.  If a number, 'px'
+ *     will be appended, otherwise the value will be applied directly.
+ */
+goog.style.setHeight = goog.partial(
+    goog.style.setPixelStyleProperty_, 'height', true);
+
+
+/**
+ * Set the width of an element.  Sets the element's style property.
+ * @param {Element} element Element to set the height of.
+ * @param {string|number} height The height value to set.  If a number, 'px'
+ *     will be appended, otherwise the value will be applied directly.
+ */
+goog.style.setWidth = goog.partial(
+    goog.style.setPixelStyleProperty_, 'width', true);
 
 
 /**
@@ -14303,12 +14917,22 @@ goog.style.toCamelCase = function(selector) {
 
 
 /**
- * Converts a CSS selector in the form styleProperty to style-property
+ * A memoized cache for goog.style.toSelectorCase.
+ * @type {Object.<string>}
+ * @private
+ */
+goog.style.toSelectorCaseCache_ = {};
+
+
+/**
+ * Converts a CSS selector in the form styleProperty to style-property.
  * @param {string} selector Camel case selector.
  * @return {string} Selector cased.
  */
 goog.style.toSelectorCase = function(selector) {
-  return selector.replace(/([A-Z])/g, '-$1').toLowerCase();
+  return goog.style.toSelectorCaseCache_[selector] ||
+      (goog.style.toSelectorCaseCache_[selector] =
+          selector.replace(/([A-Z])/g, '-$1').toLowerCase());
 };
 
 
@@ -14350,7 +14974,7 @@ goog.style.setOpacity = function(el, alpha) {
   } else if ('MozOpacity' in style) {
     style.MozOpacity = alpha;
   } else if ('filter' in style) {
-    // TODO: Overwriting the filter might have undesired side effects.
+    // TODO(user): Overwriting the filter might have undesired side effects.
     if (alpha === '') {
       style.filter = '';
     } else {
@@ -14476,7 +15100,7 @@ goog.style.installStyles = function(stylesString, opt_node) {
       body.parentNode.insertBefore(head, body);
     }
     styleSheet = dh.createDom('style');
-    // NOTE: Setting styles after the style element has been appended
+    // NOTE(user): Setting styles after the style element has been appended
     // to the head results in a nasty Webkit bug in certain scenarios. Please
     // refer to https://bugs.webkit.org/show_bug.cgi?id=26307 for additional
     // details.
@@ -14630,7 +15254,7 @@ goog.style.isUnselectable = function(el) {
  *     selectable state, and leave its descendants alone; defaults to false.
  */
 goog.style.setUnselectable = function(el, unselectable, opt_noRecurse) {
-  // TODO: Do we need all of TR_DomUtil.makeUnselectable() in Closure?
+  // TODO(user): Do we need all of TR_DomUtil.makeUnselectable() in Closure?
   var descendants = !opt_noRecurse ? el.getElementsByTagName('*') : null;
   var name = goog.style.unselectableStyle_;
   if (name) {
@@ -14862,7 +15486,7 @@ goog.style.getBox_ = function(element, stylePrefix) {
     var bottom = /** @type {string} */ (
         goog.style.getComputedStyle(element, stylePrefix + 'Bottom'));
 
-    // NOTE: Gecko can return floating point numbers for the computed
+    // NOTE(user): Gecko can return floating point numbers for the computed
     // style values.
     return new goog.math.Box(parseFloat(top),
                              parseFloat(right),
@@ -14964,7 +15588,7 @@ goog.style.getBorderBox = function(element) {
 goog.style.getFontFamily = function(el) {
   var doc = goog.dom.getOwnerDocument(el);
   var font = '';
-  if (doc.createTextRange) {
+  if (doc.body.createTextRange) {
     var range = doc.body.createTextRange();
     range.moveToElementText(el);
     font = range.queryCommandValue('FontName');
@@ -15047,7 +15671,7 @@ goog.style.getFontSize = function(el) {
   var fontSize = goog.style.getStyle_(el, 'fontSize');
   var sizeUnits = goog.style.getLengthUnits(fontSize);
   if (fontSize && 'px' == sizeUnits) {
-    // NOTE: This could be parseFloat instead, but IE doesn't return
+    // NOTE(user): This could be parseFloat instead, but IE doesn't return
     // decimal fractions in getStyle_ and Firefox reports the fractions, but
     // ignores them when rendering. Interestingly enough, when we force the
     // issue and size something to e.g., 50% of 25px, the browsers round in
@@ -15170,24 +15794,25 @@ goog.style.getScrollbarWidth = function() {
   return width;
 };
 
-// Input 31
+// Input 32
+// Copyright 2005 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2005 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Predefined DHTML animations such as slide, resize and fade.
  *
+*
  * @see ../demos/effects.html
  */
 
@@ -15766,29 +16391,29 @@ goog.fx.dom.ColorTransform.prototype.updateStyle = function() {
   this.element.style.color = color;
 };
 
-// Input 32
+// Input 33
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Generics method for collection-like classes and objects.
  *
+*
  *
  * This file contains functions to work with collections. It supports using
  * Map, Set, Array and Object and other classes that implement collection-like
  * methods.
- *
  */
 
 
@@ -15915,7 +16540,7 @@ goog.structs.isEmpty = function(col) {
  * @param {Object} col The collection-like object.
  */
 goog.structs.clear = function(col) {
-  // NOTE: This should not contain strings because strings are immutable
+  // NOTE(user): This should not contain strings because strings are immutable
   if (typeof col.clear == 'function') {
     col.clear();
   } else if (goog.isArrayLike(col)) {
@@ -16110,23 +16735,24 @@ goog.structs.every = function(col, f, opt_obj) {
   return true;
 };
 
-// Input 33
+// Input 34
+// Copyright 2007 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2007 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Python style iteration utilities.
+*
  */
 
 
@@ -16138,9 +16764,9 @@ goog.require('goog.array');
 
 
 /**
- * @type {goog.iter.Iterator|{length:number}|{__iterator__}}
+ * @typedef {goog.iter.Iterator|{length:number}|{__iterator__}}
  */
-goog.iter.Iterable = goog.typedef;
+goog.iter.Iterable;
 
 
 // For script engines that already support iterators.
@@ -16234,7 +16860,7 @@ goog.iter.toIterator = function(iterable) {
   }
 
 
-  // TODO: Should we fall back on goog.structs.getValues()?
+  // TODO(user): Should we fall back on goog.structs.getValues()?
   throw Error('Not implemented');
 };
 
@@ -16489,6 +17115,11 @@ goog.iter.chain = function(var_args) {
   var length = args.length;
   var i = 0;
   var newIter = new goog.iter.Iterator;
+
+  /**
+   * @return {*} The next item in the iteration.
+   * @this {goog.iter.Iterator}
+   */
   newIter.next = function() {
     /** @preserveTry */
     try {
@@ -16507,6 +17138,7 @@ goog.iter.chain = function(var_args) {
       }
     }
   };
+
   return newIter;
 };
 
@@ -16666,24 +17298,26 @@ goog.iter.nextOrValue = function(iterable, defaultValue) {
   }
 };
 
-// Input 34
+// Input 35
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright 2006 Google Inc. All Rights Reserved.
-
 /**
  * @fileoverview Datastructure: Hash Map.
  *
+*
+*
  *
  * This file contains an implementation of a Map structure. It implements a lot
  * of the methods used in goog.structs so those functions work on hashes.  For
@@ -17031,6 +17665,20 @@ goog.structs.Map.prototype.transpose = function() {
 
 
 /**
+ * @return {!Object} Object representation of the map.
+ */
+goog.structs.Map.prototype.toObject = function() {
+  this.cleanupKeysArray_();
+  var obj = {};
+  for (var i = 0; i < this.keys_.length; i++) {
+    var key = this.keys_[i];
+    obj[key] = this.map_[key];
+  }
+  return obj;
+};
+
+
+/**
  * Returns an iterator that iterates over the keys in the map.  Removal of keys
  * while iterating might have undesired side effects.
  * @return {!goog.iter.Iterator} An iterator over the keys in the map.
@@ -17097,311 +17745,20 @@ goog.structs.Map.hasKey_ = function(obj, key) {
   return Object.prototype.hasOwnProperty.call(obj, key);
 };
 
-// Input 35
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// Copyright 2009 Google Inc. All Rights Reserved.
-
-/**
- * @fileoverview Provides a base class for custom Error objects such that the
- * stack is corectly maintained.
- *
- */
-
-goog.provide('goog.debug.Error');
-
-
-
-/**
- * Base class for custom error objects.
- * @param {*=} opt_msg The message associated with the error.
- * @constructor
- * @extends {Error}
- */
-goog.debug.Error = function(opt_msg) {
-
-  // Ensure there is a stack trace.
-  this.stack = new Error().stack || '';
-
-  if (opt_msg) {
-    this.message = String(opt_msg);
-  }
-};
-goog.inherits(goog.debug.Error, Error);
-
-
-/** @inheritDoc */
-goog.debug.Error.prototype.name = 'CustomError';
-
 // Input 36
+// Copyright 2008 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Copyright 2008 Google Inc. All Rights Reserved.
-
-/**
- * @fileoverview Utilities to check the preconditions, postconditions and
- * invariants runtime.
- *
- * Methods in this package should be given special treatment by the compiler
- * for type-inference. For example, <code>goog.asserts.assert(foo)</code>
- * will restrict <code>foo</code> to a truthy value.
- *
- */
-
-goog.provide('goog.asserts');
-goog.provide('goog.asserts.AssertionError');
-
-goog.require('goog.debug.Error');
-goog.require('goog.string');
-
-// TODO: Add return values for all these functions, so that they
-// can be chained like:
-// eatNumber(goog.asserts.isNumber(foo));
-// for more lisp-y asserts.
-
-/**
- * @define {boolean} Whether to strip out asserts or to leave them in.
- */
-goog.asserts.ENABLE_ASSERTS = goog.DEBUG;
-
-
-/**
- * Error object for failed assertions.
- * @param {string} messagePattern The pattern that was used to form message.
- * @param {!Array.<*>} messageArgs The items to substitute into the pattern.
- * @constructor
- * @extends {goog.debug.Error}
- */
-goog.asserts.AssertionError = function(messagePattern, messageArgs) {
-  messageArgs.unshift(messagePattern);
-  goog.debug.Error.call(this, goog.string.subs.apply(null, messageArgs));
-  // Remove the messagePattern afterwards to avoid permenantly modifying the
-  // passed in array.
-  messageArgs.shift();
-
-  /**
-   * The message pattern used to format the error message. Error handlers can
-   * use this to uniquely identify the assertion.
-   * @type {string}
-   */
-  this.messagePattern = messagePattern;
-};
-goog.inherits(goog.asserts.AssertionError, goog.debug.Error);
-
-
-/** @inheritDoc */
-goog.asserts.AssertionError.prototype.name = 'AssertionError';
-
-
-/**
- * Throws an exception with the given message and "Assertion failed" prefixed
- * onto it.
- * @param {string} defaultMessage The message to use if givenMessage is empty.
- * @param {Array.<*>} defaultArgs The substitution arguments for defaultMessage.
- * @param {string|undefined} givenMessage Message supplied by the caller.
- * @param {Array.<*>} givenArgs The substitution arguments for givenMessage.
- * @throws {goog.asserts.AssertionError} When the value is not a number.
- * @private
- */
-goog.asserts.doAssertFailure_ =
-    function(defaultMessage, defaultArgs, givenMessage, givenArgs) {
-  var message = 'Assertion failed';
-  if (givenMessage) {
-    message += ': ' + givenMessage;
-    var args = givenArgs;
-  } else if (defaultMessage) {
-    message += ': ' + defaultMessage;
-    args = defaultArgs;
-  }
-  // The '' + works around an Opera 10 bug in the unit tests. Without it,
-  // a stack trace is added to var message above. With this, a stack trace is
-  // not added until this line (it causes the extra garbage to be added after
-  // the assertion message instead of in the middle of it).
-  throw new goog.asserts.AssertionError('' + message, args || []);
-};
-
-
-/**
- * Checks if the condition evaluates to true if goog.asserts.ENABLE_ASSERTS is
- * true.
- * @param {*} condition The condition to check.
- * @param {string=} opt_message Error message in case of failure.
- * @param {...*} var_args The items to substitute into the failure message.
- * @throws {goog.asserts.AssertionError} When the condition evaluates to false.
- */
-goog.asserts.assert = function(condition, opt_message, var_args) {
-  if (goog.asserts.ENABLE_ASSERTS && !condition) {
-    goog.asserts.doAssertFailure_('', null, opt_message,
-        Array.prototype.slice.call(arguments, 2));
-  }
-};
-
-
-/**
- * Fails if goog.asserts.ENABLE_ASSERTS is true. This function is useful in case
- * when we want to add a check in the unreachable area like switch-case
- * statement:
- *
- * <pre>
- *  switch(type) {
- *    case FOO: doSomething(); break;
- *    case BAR: doSomethingElse(); break;
- *    default: goog.assert.fail('Unrecognized type: ' + type);
- *      // We have only 2 types - "default:" section is unreachable code.
- *  }
- * </pre>
- *
- * @param {string=} opt_message Error message in case of failure.
- * @param {...*} var_args The items to substitute into the failure message.
- * @throws {goog.asserts.AssertionError} Failure.
- */
-goog.asserts.fail = function(opt_message, var_args) {
-  if (goog.asserts.ENABLE_ASSERTS) {
-    throw new goog.asserts.AssertionError(
-        'Failure' + (opt_message ? ': ' + opt_message : ''),
-        Array.prototype.slice.call(arguments, 1));
-  }
-};
-
-
-/**
- * Checks if the value is a number if goog.asserts.ENABLE_ASSERTS is true.
- * @param {*} value The value to check.
- * @param {string=} opt_message Error message in case of failure.
- * @param {...*} var_args The items to substitute into the failure message.
- * @return {number} The value, guaranteed to be a number when asserts enabled.
- * @throws {goog.asserts.AssertionError} When the value is not a number.
- */
-goog.asserts.assertNumber = function(value, opt_message, var_args) {
-  if (goog.asserts.ENABLE_ASSERTS && !goog.isNumber(value)) {
-    goog.asserts.doAssertFailure_('Expected number but got %s.', [value],
-         opt_message, Array.prototype.slice.call(arguments, 2));
-  }
-  return /** @type {number} */ (value);
-};
-
-
-/**
- * Checks if the value is a string if goog.asserts.ENABLE_ASSERTS is true.
- * @param {*} value The value to check.
- * @param {string=} opt_message Error message in case of failure.
- * @param {...*} var_args The items to substitute into the failure message.
- * @return {string} The value, guaranteed to be a string when asserts enabled.
- * @throws {goog.asserts.AssertionError} When the value is not a string.
- */
-goog.asserts.assertString = function(value, opt_message, var_args) {
-  if (goog.asserts.ENABLE_ASSERTS && !goog.isString(value)) {
-    goog.asserts.doAssertFailure_('Expected string but got %s.', [value],
-         opt_message, Array.prototype.slice.call(arguments, 2));
-  }
-  return /** @type {string} */ (value);
-};
-
-
-/**
- * Checks if the value is a function if goog.asserts.ENABLE_ASSERTS is true.
- * @param {*} value The value to check.
- * @param {string=} opt_message Error message in case of failure.
- * @param {...*} var_args The items to substitute into the failure message.
- * @return {!Function} The value, guaranteed to be a function when asserts
- *     enabled.
- * @throws {goog.asserts.AssertionError} When the value is not a function.
- */
-goog.asserts.assertFunction = function(value, opt_message, var_args) {
-  if (goog.asserts.ENABLE_ASSERTS && !goog.isFunction(value)) {
-    goog.asserts.doAssertFailure_('Expected function but got %s.', [value],
-         opt_message, Array.prototype.slice.call(arguments, 2));
-  }
-  return /** @type {!Function} */ (value);
-};
-
-
-/**
- * Checks if the value is an Object if goog.asserts.ENABLE_ASSERTS is true.
- * @param {*} value The value to check.
- * @param {string=} opt_message Error message in case of failure.
- * @param {...*} var_args The items to substitute into the failure message.
- * @return {!Object} The value, guaranteed to be a non-null object.
- * @throws {goog.asserts.AssertionError} When the value is not an object.
- */
-goog.asserts.assertObject = function(value, opt_message, var_args) {
-  if (goog.asserts.ENABLE_ASSERTS && !goog.isObject(value)) {
-    goog.asserts.doAssertFailure_('Expected object but got %s.', [value],
-         opt_message, Array.prototype.slice.call(arguments, 2));
-  }
-  return /** @type {!Object} */ (value);
-};
-
-
-/**
- * Checks if the value is an Array if goog.asserts.ENABLE_ASSERTS is true.
- * @param {*} value The value to check.
- * @param {string=} opt_message Error message in case of failure.
- * @param {...*} var_args The items to substitute into the failure message.
- * @return {!Array} The value, guaranteed to be a non-null array.
- * @throws {goog.asserts.AssertionError} When the value is not an array.
- */
-goog.asserts.assertArray = function(value, opt_message, var_args) {
-  if (goog.asserts.ENABLE_ASSERTS && !goog.isArray(value)) {
-    goog.asserts.doAssertFailure_('Expected array but got %s.', [value],
-         opt_message, Array.prototype.slice.call(arguments, 2));
-  }
-  return /** @type {!Array} */ (value);
-};
-
-
-/**
- * Checks if the value is an instance of the user-defined type if
- * goog.asserts.ENABLE_ASSERTS is true.
- * @param {*} value The value to check.
- * @param {!Function} type A user-defined constructor.
- * @param {string=} opt_message Error message in case of failure.
- * @param {...*} var_args The items to substitute into the failure message.
- * @throws {goog.asserts.AssertionError} When the value is not an instance of
- *     type.
- */
-goog.asserts.assertInstanceof = function(value, type, opt_message, var_args) {
-  if (goog.asserts.ENABLE_ASSERTS && !(value instanceof type)) {
-    goog.asserts.doAssertFailure_('instanceof check failed.', null,
-         opt_message, Array.prototype.slice.call(arguments, 3));
-  }
-};
-
-
-// Input 37
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// Copyright 2008 Google Inc. All rights reserved.
 
 /**
  * @fileoverview Simple utilities for dealing with URI strings.
@@ -17432,6 +17789,8 @@ goog.asserts.assertInstanceof = function(value, type, opt_message, var_args) {
  * Uses features of RFC 3986 for parsing/formatting URIs:
  *   http://gbiv.com/protocols/uri/rfc/rfc3986.html
  *
+*
+*
  */
 
 goog.provide('goog.uri.utils');
@@ -17766,6 +18125,17 @@ goog.uri.utils.getFragmentEncoded = function(uri) {
 
 /**
  * @param {string} uri The URI to examine.
+ * @param {?string} fragment The encoded fragment identifier, or null if none.
+ *     Does not include the hash mark itself.
+ * @return {string} The URI with the fragment set.
+ */
+goog.uri.utils.setFragmentEncoded = function(uri, fragment) {
+  return goog.uri.utils.removeFragment(uri) + (fragment ? '#' + fragment : '');
+};
+
+
+/**
+ * @param {string} uri The URI to examine.
  * @return {?string} The decoded fragment identifier, or null if none.  Does
  *     not include the hash mark.
  */
@@ -17863,9 +18233,9 @@ goog.uri.utils.assertNoFragmentsOrQueries_ = function(uri) {
  * to a string and URI encoded.  Array values are expanded into multiple
  * &key=value pairs, with each element stringized and URI-encoded.
  *
- * @type {*}
+ * @typedef {*}
  */
-goog.uri.utils.QueryValue = goog.typedef;
+goog.uri.utils.QueryValue;
 
 
 /**
@@ -17887,9 +18257,9 @@ goog.uri.utils.QueryValue = goog.typedef;
  * ];
  * </pre>
  *
- * @type {!Array.<string|goog.uri.utils.QueryValue>}
+ * @typedef {!Array.<string|goog.uri.utils.QueryValue>}
  */
-goog.uri.utils.QueryArray = goog.typedef;
+goog.uri.utils.QueryArray;
 
 
 /**
@@ -17946,11 +18316,21 @@ goog.uri.utils.appendKeyValuePairs_ = function(key, value, pairs) {
     // jscompiler that it is, indeed, an array.
     value = /** @type {Array} */ (value);
     for (var j = 0; j < value.length; j++) {
-      pairs.push('&', key, '=', goog.string.urlEncode(value[j]));
+      pairs.push('&', key);
+      // Check for empty string, null and undefined get encoded
+      // into the url as literal strings
+      if (value[j] !== '') {
+        pairs.push('=', goog.string.urlEncode(value[j]));
+      }
     }
   } else if (value != null) {
     // Not null or undefined, so safe to append.
-    pairs.push('&', key, '=', goog.string.urlEncode(value));
+    pairs.push('&', key);
+    // Check for empty string, null and undefined get encoded
+    // into the url as literal strings
+    if (value !== '') {
+      pairs.push('=', goog.string.urlEncode(value));
+    }
   }
 };
 
@@ -17982,9 +18362,7 @@ goog.uri.utils.buildQueryDataBuffer_ = function(
 
 /**
  * Builds a query data string from a sequence of alternating keys and values.
- *
- * Currently generates "&key=&" for empty args; there is no way to generate
- * "&key&" arguments with no equal sign.
+ * Currently generates "&key&" for empty args.
  *
  * @param {goog.uri.utils.QueryArray} keysAndValues Alternating keys and
  *     values.  See the typedef.
@@ -18021,9 +18399,7 @@ goog.uri.utils.buildQueryDataBufferFromMap_ = function(buffer, map) {
 
 /**
  * Builds a query data string from a map.
- *
- * Currently generates "&key=&" for empty args; there is no way to generate
- * "&key&" arguments with no equal sign.
+ * Currently generates "&key&" for empty args.
  *
  * @param {Object} map An object where keys are URI-encoded parameter keys,
  *     and the values are arbitrary types or arrays.  Keys with a null value
@@ -18345,20 +18721,20 @@ goog.uri.utils.makeUnique = function(uri) {
       goog.uri.utils.StandardQueryParam.RANDOM, goog.string.getRandomString());
 };
 
-// Input 38
+// Input 37
+// Copyright 2006 The Closure Library Authors. All Rights Reserved.
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an "AS-IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Copyright 2006 Google Inc. All Rights Reserved.
 
 /**
  * @fileoverview Class for parsing and formatting URIs.
@@ -18375,6 +18751,10 @@ goog.uri.utils.makeUnique = function(uri) {
  * internal representation is now of un-encoded parts, this will change the
  * behavior slightly.
  *
+*
+*
+*
+*
  */
 
 goog.provide('goog.Uri');
@@ -18554,6 +18934,9 @@ goog.Uri.prototype.toString = function() {
   }
 
   if (this.path_) {
+    if (this.hasDomain() && this.path_.charAt(0) != '/') {
+      out.push('/');
+    }
     out.push(goog.Uri.encodeSpecialChars_(
         this.path_, goog.Uri.reDisallowedInPath_));
   }
@@ -18958,7 +19341,7 @@ goog.Uri.prototype.setParameterValues = function(key, values) {
     values = [String(values)];
   }
 
-  // TODO: This cast shouldn't be necessary.
+  // TODO(nicksantos): This cast shouldn't be necessary.
   this.queryData_.setValues(key, /** @type {Array} */ (values));
 
   return this;
@@ -19349,7 +19732,7 @@ goog.Uri.reDisallowedInFragment_ = /#/g;
  */
 goog.Uri.haveSameDomain = function(uri1String, uri2String) {
   // Differs from goog.uri.utils.haveSameDomain, since this ignores scheme.
-  // TODO: Have this just call goog.uri.util.haveSameDomain.
+  // TODO(user): Have this just call goog.uri.util.haveSameDomain.
   var pieces1 = goog.uri.utils.split(uri1String);
   var pieces2 = goog.uri.utils.split(uri2String);
   return pieces1[goog.uri.utils.ComponentIndex.DOMAIN] ==
@@ -19610,7 +19993,7 @@ goog.Uri.QueryData.prototype.containsKey = function(key) {
  * @return {boolean} Whether there is a parameter with the given value.
  */
 goog.Uri.QueryData.prototype.containsValue = function(value) {
-  // NOTE: This solution goes through all the params even if it was the
+  // NOTE(user): This solution goes through all the params even if it was the
   // first param. We can get around this by not reusing code or by switching to
   // iterators.
   var vals = this.getValues();
@@ -19788,14 +20171,24 @@ goog.Uri.QueryData.prototype.toString = function() {
         if (count > 0) {
           sb.push('&');
         }
-        sb.push(encodedKey, '=', goog.string.urlEncode(val[j]));
+        sb.push(encodedKey);
+        // Check for empty string, null and undefined get encoded
+        // into the url as literal strings
+        if (val[j] !== '') {
+          sb.push('=', goog.string.urlEncode(val[j]));
+        }
         count++;
       }
     } else {
       if (count > 0) {
         sb.push('&');
       }
-      sb.push(encodedKey, '=', goog.string.urlEncode(val));
+      sb.push(encodedKey);
+      // Check for empty string, null and undefined get encoded
+      // into the url as literal strings
+      if (val !== '') {
+        sb.push('=', goog.string.urlEncode(val));
+      }
       count++;
     }
   }
@@ -19836,11 +20229,13 @@ goog.Uri.QueryData.prototype.invalidateCache_ = function() {
  */
 goog.Uri.QueryData.prototype.filterKeys = function(keys) {
   this.ensureKeyMapInitialized_();
-  goog.structs.forEach(this.keyMap_, function(value, key, map) {
-    if (!goog.array.contains(keys, key)) {
-      this.remove(key);
-    }
-  }, this);
+  goog.structs.forEach(this.keyMap_,
+    /** @this {goog.Uri.QueryData} */
+    function(value, key, map) {
+      if (!goog.array.contains(keys, key)) {
+        this.remove(key);
+      }
+    }, this);
   return this;
 };
 
@@ -19891,13 +20286,15 @@ goog.Uri.QueryData.prototype.setIgnoreCase = function(ignoreCase) {
   if (resetKeys) {
     this.ensureKeyMapInitialized_();
     this.invalidateCache_();
-    goog.structs.forEach(this.keyMap_, function(value, key, map) {
-      var lowerCase = key.toLowerCase();
-      if (key != lowerCase) {
-        this.remove(key);
-        this.add(lowerCase, value);
-      }
-    }, this);
+    goog.structs.forEach(this.keyMap_,
+      /** @this {goog.Uri.QueryData} */
+      function(value, key, map) {
+        var lowerCase = key.toLowerCase();
+        if (key != lowerCase) {
+          this.remove(key);
+          this.add(lowerCase, value);
+        }
+      }, this);
   }
   this.ignoreCase_ = ignoreCase;
 };
@@ -19913,13 +20310,15 @@ goog.Uri.QueryData.prototype.setIgnoreCase = function(ignoreCase) {
 goog.Uri.QueryData.prototype.extend = function(var_args) {
   for (var i = 0; i < arguments.length; i++) {
     var data = arguments[i];
-    goog.structs.forEach(data, function(value, key) {
-      this.add(key, value);
-    }, this);
+    goog.structs.forEach(data,
+      /** @this {goog.Uri.QueryData} */
+      function(value, key) {
+        this.add(key, value);
+      }, this);
   }
 };
 
-// Input 39
+// Input 38
 /*
 Copyright 2010 Google Inc.
 
@@ -20413,10 +20812,31 @@ swivel_viewer.Swivel.prototype.doMouseIn = function(e) {
  * 
  * @param {Event} e mouse-out event
  */
-swivel_viewer.Swivel.prototype.doMouseOut = function(e) {
+swivel_viewer..Swivel.prototype.doMouseOut = function(e) {
+  // Address the problem with IE which generates "mouse out" event when
+  // swapping the images.  This ensures that the mouse actually left the area.
+  if (this.mouseIsDown_) {
+    var mouseX_ = e.clientX + document.body.scrollLeft;
+    var mouseY_ = e.clientY + document.body.scrollTop;
+
+    var width = e.currentTarget.offsetWidth;
+    var height = e.currentTarget.offsetHeight;
+
+    if (mouseX_ < 0 || mouseX_ >= width || mouseY_ < 0 || mouseY_ >= height) {
+      // Treat this as a mouse up, which will stop any current action.
+      this.doMouseUp(e);
+
+      // Reset to the default cursor in case the mouse up changed it.
+      this.cursorDefault();
+    }
+    e.stopPropagation();
+    e.preventDefault();
+    return;
+  }
+
   // Treat this as a mouse up, which will stop any current action.
   this.doMouseUp(e);
-  
+
   // Reset to the default cursor in case the mouse up changed it.
   this.cursorDefault();
 };
