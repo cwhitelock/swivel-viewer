@@ -14,4 +14,5 @@ src/object-scanner/ contains some hacked-up code for automatically capturing
 images from a libgphoto2-supported camera and turning a turntable.  Useful
 if you want to try building automatic image-capturing turntables.
 
-
+app-engine/ is for our own benefit, so that we can keep the tiny amount of
+static content we host on App Engine under revision control.
