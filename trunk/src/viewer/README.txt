@@ -1,5 +1,5 @@
 This directory contains the swivel viewer in both source and compiled 
-(but unoptimized) form.  See examples/example.html for how to embed the viewer 
+(but unoptimized) form.  See example.html for how to embed the viewer 
 in a web page.
 
 The viewer uses the Google Closure library, so if you want to make changes,
