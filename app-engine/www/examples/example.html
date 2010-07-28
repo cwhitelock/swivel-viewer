@@ -1,0 +1,82 @@
+<html>
+<!-- This is a simple example of how to embed the swivel viewer into a web
+page.  The swivel_compiled.js file has all the moving parts.  The curved
+arrow icon is in the images/ directory; if you get a broken image superimposed
+on your viewer, the browser can't find images/arrow_curved_small.gif and .png.
+-->
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="swivel_compiled.js">
+</script>
+<script type="text/javascript">
+  //<!CDATA[
+
+  function setupSwivel() {
+    var viewer = new swivel_viewer.Swivel(
+        // here the URLs come from picasaweb to save on appengine bandwidth,
+        // but they could just as easily be local or relative URLs to images on
+        // your own site
+              document.getElementById("viewer_div"), 
+              [
+'http://lh3.ggpht.com/_oXIW_jM0QDA/Sot9TQsmWII/AAAAAAAAIx0/STecnyGkT6s/cropped.bg_removed.10-000.jpg',
+'http://lh6.ggpht.com/_oXIW_jM0QDA/Sot9TbTBwnI/AAAAAAAAIx8/StLNn9AMemk/cropped.bg_removed.10-010.jpg',
+'http://lh5.ggpht.com/_oXIW_jM0QDA/Sot9ThkPmXI/AAAAAAAAIyE/sNy6DqtM_3g/cropped.bg_removed.10-020.jpg',
+'http://lh4.ggpht.com/_oXIW_jM0QDA/Sot9TwjtQaI/AAAAAAAAIyM/5lrac_RUMhY/cropped.bg_removed.10-030.jpg',
+'http://lh6.ggpht.com/_oXIW_jM0QDA/Sot9Tx9Xa4I/AAAAAAAAIyU/5Q_9OzufLrc/cropped.bg_removed.10-040.jpg',
+'http://lh5.ggpht.com/_oXIW_jM0QDA/Sot9UOBhG-I/AAAAAAAAIyc/LEnf9QSkJ-k/cropped.bg_removed.10-050.jpg',
+'http://lh3.ggpht.com/_oXIW_jM0QDA/Sot9UfeOxVI/AAAAAAAAIyk/R_W3RKoTEo0/cropped.bg_removed.10-060.jpg',
+'http://lh4.ggpht.com/_oXIW_jM0QDA/Sot9UgmWlDI/AAAAAAAAIys/HEnTcA9TVxs/cropped.bg_removed.10-070.jpg',
+'http://lh4.ggpht.com/_oXIW_jM0QDA/Sot9U8C9OrI/AAAAAAAAIy0/s5qDLNsHYj8/cropped.bg_removed.10-080.jpg',
+'http://lh3.ggpht.com/_oXIW_jM0QDA/Sot9VCMj-KI/AAAAAAAAIy8/Oi7NyRMopSs/cropped.bg_removed.10-090.jpg',
+'http://lh3.ggpht.com/_oXIW_jM0QDA/Sot9VZCeLJI/AAAAAAAAIzE/AKcE6u13d38/cropped.bg_removed.10-100.jpg',
+'http://lh5.ggpht.com/_oXIW_jM0QDA/Sot9VVrgFmI/AAAAAAAAIzM/Ae6QG1GGSvI/cropped.bg_removed.10-110.jpg',
+'http://lh4.ggpht.com/_oXIW_jM0QDA/Sot9Vsgmq8I/AAAAAAAAIzU/zOmdtr_faKU/cropped.bg_removed.10-120.jpg',
+'http://lh3.ggpht.com/_oXIW_jM0QDA/Sot9V9zMY0I/AAAAAAAAIzc/KZ7uIkU0bVs/cropped.bg_removed.10-130.jpg',
+'http://lh5.ggpht.com/_oXIW_jM0QDA/Sot9WWAotII/AAAAAAAAIzk/r9R6_2JWKzU/cropped.bg_removed.10-140.jpg',
+'http://lh4.ggpht.com/_oXIW_jM0QDA/Sot9WaTbayI/AAAAAAAAIzs/jN3_-H4CqJE/cropped.bg_removed.10-150.jpg',
+'http://lh4.ggpht.com/_oXIW_jM0QDA/Sot9WrRyDuI/AAAAAAAAIz0/ZiRKqPkMrs0/cropped.bg_removed.10-160.jpg',
+'http://lh6.ggpht.com/_oXIW_jM0QDA/Sot9XNDaGzI/AAAAAAAAIz8/dCG_Swqr5xM/cropped.bg_removed.10-170.jpg',
+'http://lh3.ggpht.com/_oXIW_jM0QDA/Sot9XBgbZlI/AAAAAAAAI0E/2Kdgzy6xUS8/cropped.bg_removed.10-180.jpg',
+'http://lh3.ggpht.com/_oXIW_jM0QDA/Sot9XdKGTdI/AAAAAAAAI0M/C4WHLOUk7w0/cropped.bg_removed.10-190.jpg',
+'http://lh5.ggpht.com/_oXIW_jM0QDA/Sot9XtVH5cI/AAAAAAAAI0U/D67SKkb06ww/cropped.bg_removed.10-200.jpg',
+'http://lh3.ggpht.com/_oXIW_jM0QDA/Sot9X3d01vI/AAAAAAAAI0c/URgYeYgDvOo/cropped.bg_removed.10-210.jpg',
+'http://lh5.ggpht.com/_oXIW_jM0QDA/Sot9YHC5c2I/AAAAAAAAI0k/BF22HBHBJ8Q/cropped.bg_removed.10-220.jpg',
+'http://lh6.ggpht.com/_oXIW_jM0QDA/Sot9YEZuthI/AAAAAAAAI0s/oNlREZDZJVM/cropped.bg_removed.10-230.jpg',
+'http://lh5.ggpht.com/_oXIW_jM0QDA/Sot9YfTknnI/AAAAAAAAI04/CD4PgjhMqSo/cropped.bg_removed.10-240.jpg',
+'http://lh6.ggpht.com/_oXIW_jM0QDA/Sot9YhmIkAI/AAAAAAAAI1A/d1EyyG5Nihc/cropped.bg_removed.10-250.jpg',
+'http://lh5.ggpht.com/_oXIW_jM0QDA/Sot9Y3DmZFI/AAAAAAAAI1I/PIEAe0rdHG4/cropped.bg_removed.10-260.jpg',
+'http://lh4.ggpht.com/_oXIW_jM0QDA/Sot9Y6j5HWI/AAAAAAAAI1Q/ROFqrhYQLq4/cropped.bg_removed.10-270.jpg',
+'http://lh6.ggpht.com/_oXIW_jM0QDA/Sot9ZEiehYI/AAAAAAAAI1Y/xkoXg2AoL7g/cropped.bg_removed.10-280.jpg',
+'http://lh3.ggpht.com/_oXIW_jM0QDA/Sot9Zac2htI/AAAAAAAAI1g/BAGjj2bdf7U/cropped.bg_removed.10-290.jpg',
+'http://lh6.ggpht.com/_oXIW_jM0QDA/Sot9ZnhQGYI/AAAAAAAAI1o/ewSFTJgfMEY/cropped.bg_removed.10-300.jpg',
+'http://lh4.ggpht.com/_oXIW_jM0QDA/Sot9ZvsWyhI/AAAAAAAAI1w/Ge3rp4pRTNw/cropped.bg_removed.10-310.jpg',
+'http://lh4.ggpht.com/_oXIW_jM0QDA/Sot9Z8hV2PI/AAAAAAAAI14/xcZZG0nOQgE/cropped.bg_removed.10-320.jpg',
+'http://lh3.ggpht.com/_oXIW_jM0QDA/Sot9aHF7oFI/AAAAAAAAI2A/dUQXWcCBXgw/cropped.bg_removed.10-330.jpg',
+'http://lh5.ggpht.com/_oXIW_jM0QDA/Sot9aRmMa-I/AAAAAAAAI2I/HNWwfGsiYqg/cropped.bg_removed.10-340.jpg',
+'http://lh6.ggpht.com/_oXIW_jM0QDA/Sot9auwARFI/AAAAAAAAI2Q/t73UbV0UVg8/cropped.bg_removed.10-350.jpg',
+                ],
+              626,667);
+    // Flip images automatically once every 2 seconds.  Comment
+    // this out to disable auto-rotate.
+    setInterval(function () { viewer.autoRotate() }, 2000);
+  };
+  //]]>
+</script>
+</head>
+
+<body style="margin: 0pt; padding: 0pt;
+      cursor: default;" onload="setupSwivel()">
+
+Here's a sample image viewer embedded in a div.  Drag left and right to
+flip back and forth through the images.  Scroll wheel zooms.  When zoomed
+in, shift+drag pans within an image.
+<br><br>
+
+<!-- By setting overflow:hidden and giving a fixed width and height,
+     we ensure that zooming in with the scroll wheel doesn't make
+     the viewer_div grow and mess up the page layout -->
+<div style="overflow:hidden;width=626px;height:667px">
+
+  <div id="viewer_div"></div>
+
+</div>
+</body></html>
