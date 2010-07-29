@@ -29,7 +29,7 @@ And here's the album we made with the [http://code.google.com/p/swivel-viewer/wi
 
 Theodore Gray built the beautiful <a href="http://periodictable.com/index.html">Photographic Periodic Table</a>, and made 360-degree videos and Quicktime VR movies of many of the samples.  His photos don't currently use Picasa or our standalone viewer, but they're very beautiful!
 
-<a href="http://periodictable.com/Items/083.23/index.html"><img src="http://periodictable.com/Samples/083.23/s9s.JPG"/></a>
+<a href="http://periodictable.com/Items/083.23/index.html"><img src="http://periodictable.com/Samples/083.23/s9s.JPG" height=178 width=178/></a>
 
 ----
 
