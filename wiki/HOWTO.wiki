@@ -11,6 +11,8 @@ Briefly, there are three different ways to swivel through an online photo album:
 
 Read on to find out how to do each of these things.  (Or go directly to [HostingTheViewer] if you're a techie and already know you want to host the viewer yourself.)
 
+You could also try this [http://www.guidingtech.com/4639/swivel-360-degree-view-photos-picasa-web/ excellent tutorial] by Ashutosh on [http://www.guidingtech.com/ guidingtech.com].
+
 = What's the big deal with swiveling, anyway? =
 
 The ability to swivel left and right in an album by dragging on the image doesn't give you any new fundamental abilities.  But it's a lot easier than clicking repeatedly on a "next" or "previous" arrow.
